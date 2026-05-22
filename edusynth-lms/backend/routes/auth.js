@@ -17,6 +17,7 @@ router.post('/register', asyncHandler(async (req, res) => {
     lastName,
     registrationId,
     tenantCode,
+    studyHandle: requestedHandle, // Optional student-chosen leaderboard alias
     role: requestedRole, // Receive the role from frontend
     adminSecret          // Receive the secret from frontend
   } = req.body;
@@ -69,6 +70,26 @@ router.post('/register', asyncHandler(async (req, res) => {
     });
   }
 
+  // Resolve the study handle — use the student's choice if valid and free,
+  // otherwise auto-generate a neutral one so privacy is the default.
+  let studyHandle;
+  if (requestedHandle && requestedHandle.trim()) {
+    const handleError = User.validateStudyHandle(requestedHandle);
+    if (handleError) {
+      return res.status(400).json({ success: false, message: handleError });
+    }
+    const handleTaken = await User.findOne({ tenantId, studyHandle: requestedHandle.trim() });
+    if (handleTaken) {
+      return res.status(409).json({
+        success: false,
+        message: 'That study handle is already taken'
+      });
+    }
+    studyHandle = requestedHandle.trim();
+  } else {
+    studyHandle = await User.generateStudyHandle(tenantId);
+  }
+
   // Create new user with the verified role
   const user = new User({
     tenantId,
@@ -77,6 +98,7 @@ router.post('/register', asyncHandler(async (req, res) => {
     firstName,
     lastName,
     registrationId,
+    studyHandle,
     role: finalRole // Use the verified role
   });
 
@@ -98,6 +120,7 @@ router.post('/register', asyncHandler(async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         fullName: user.fullName,
+        studyHandle: user.studyHandle,
         role: user.role,
         registrationId: user.registrationId,
         tenantId: user.tenantId
@@ -209,6 +232,12 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
     });
   }
 
+  // Legacy users created before study handles existed get one lazily
+  if (!user.studyHandle) {
+    user.studyHandle = await User.generateStudyHandle(user.tenantId);
+    await user.save();
+  }
+
   res.json({
     success: true,
     data: {
@@ -218,6 +247,7 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         fullName: user.fullName,
+        studyHandle: user.studyHandle,
         role: user.role,
         registrationId: user.registrationId,
         avatar: user.avatar,
@@ -228,6 +258,49 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
         currentTitle: user.currentTitle || 'Novice Scholar'
       }
     }
+  });
+}));
+
+/**
+ * @route   PUT /api/auth/study-handle
+ * @desc    Update the current user's study handle (leaderboard alias)
+ * @access  Private
+ */
+router.put('/study-handle', authenticate, asyncHandler(async (req, res) => {
+  const { studyHandle } = req.body;
+
+  const handleError = User.validateStudyHandle(studyHandle || '');
+  if (handleError) {
+    return res.status(400).json({ success: false, message: handleError });
+  }
+
+  const user = await User.findById(req.user.userId);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  const trimmed = studyHandle.trim();
+
+  // Uniqueness within the tenant (ignore the user's own current handle)
+  const taken = await User.findOne({
+    tenantId: user.tenantId,
+    studyHandle: trimmed,
+    _id: { $ne: user._id }
+  });
+  if (taken) {
+    return res.status(409).json({
+      success: false,
+      message: 'That study handle is already taken'
+    });
+  }
+
+  user.studyHandle = trimmed;
+  await user.save();
+
+  res.json({
+    success: true,
+    message: 'Study handle updated',
+    data: { studyHandle: user.studyHandle }
   });
 }));
 

@@ -144,17 +144,20 @@ router.get('/leaderboard', asyncHandler(async (req, res) => {
     },
     { $unwind: '$user' },
     {
+      // Privacy: the leaderboard is student-facing, so it exposes only the
+      // self-chosen study handle — never the real name or registration ID.
       $project: {
         userId: 1,
-        fullName: { $concat: ['$user.firstName', ' ', '$user.lastName'] },
-        registrationId: '$user.registrationId',
+        studyHandle: { $ifNull: ['$user.studyHandle', 'Scholar'] },
+        xpPoints: { $ifNull: ['$user.xpPoints', 0] },
+        currentTitle: { $ifNull: ['$user.currentTitle', 'Novice Scholar'] },
+        streakCount: { $ifNull: ['$user.streakCount', 0] },
         averageScore: 1,
         totalQuizzesTaken: 1,
-        currentReadinessScore: 1,
-        streakData: 1
+        currentReadinessScore: 1
       }
     },
-    { $sort: { averageScore: -1 } },
+    { $sort: { xpPoints: -1 } },
     { $limit: parseInt(limit) }
   ]);
 
