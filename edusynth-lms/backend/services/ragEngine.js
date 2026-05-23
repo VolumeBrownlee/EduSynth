@@ -297,15 +297,21 @@ class RAGEngine {
         .join('\n\n---\n\n')
         .substring(0, 15000); // Limit content length
 
-      // Analyze restricted exams for difficulty calibration
-      const difficultyProfile = await this.analyzeExamDifficulty(tenantId, subject);
+      // Analyze restricted exams for difficulty calibration.
+      // Calibration is an enhancement, not a prerequisite — if Gemini returns
+      // malformed JSON for the exam paper (which it sometimes does), we still
+      // generate the quiz with the user's requested difficulty.
+      let difficultyProfile = { hasRestrictedContent: false, difficultyProfile: null };
+      try {
+        difficultyProfile = await this.analyzeExamDifficulty(tenantId, subject);
+      } catch (calibrationError) {
+        logger.warn(`Skipping exam-difficulty calibration: ${calibrationError.message}`);
+      }
 
-      // Adjust difficulty based on exam analysis
       let calibratedDifficulty = difficulty;
-      if (difficultyProfile.hasRestrictedContent) {
-        const examDifficulty = difficultyProfile.difficultyProfile.overallDifficulty;
+      if (difficultyProfile?.hasRestrictedContent && difficultyProfile.difficultyProfile?.overallDifficulty) {
         // Blend requested difficulty with exam difficulty
-        calibratedDifficulty = this.blendDifficulty(difficulty, examDifficulty);
+        calibratedDifficulty = this.blendDifficulty(difficulty, difficultyProfile.difficultyProfile.overallDifficulty);
       }
 
       // Generate quiz
@@ -442,6 +448,61 @@ class RAGEngine {
       return result;
     } catch (error) {
       logger.error('Error generating flashcards:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate a sample exam paper that MIRRORS the lecturer's past papers in
+   * structure (sections, question count, types, marks, instructions) but
+   * draws every actual question's content from the public study material.
+   * Students never see the past papers themselves — only a new paper
+   * modelled on them, so the real exam's format doesn't surprise them.
+   */
+  async generateSampleExam(tenantId, options = {}) {
+    try {
+      const { subject } = options;
+
+      if (!subject) {
+        throw new Error('Sample exam requires a subject');
+      }
+
+      // Public study material — the SOURCE of every question's content
+      const studyDocs = await KnowledgeBase.findByTenant(tenantId, 'public', { subject });
+      if (!studyDocs || studyDocs.length === 0) {
+        throw new Error(`No study material available for ${subject}`);
+      }
+
+      // Restricted past papers — used ONLY as a structural template
+      const pastPapers = await KnowledgeBase.findByTenant(tenantId, 'restricted', { subject });
+      if (!pastPapers || pastPapers.length === 0) {
+        throw new Error(`Sample Exam for ${subject} needs past papers — ask your lecturer to upload at least one.`);
+      }
+
+      const studyContent = studyDocs
+        .map(d => d.extractedText)
+        .filter(Boolean)
+        .join('\n\n---\n\n')
+        .substring(0, 12000);
+
+      const pastPaperContent = pastPapers
+        .map(d => d.extractedText)
+        .filter(Boolean)
+        .join('\n\n---\n\n')
+        .substring(0, 8000);
+
+      if (!studyContent) {
+        throw new Error(`Study material for ${subject} could not be read`);
+      }
+
+      const result = await geminiService.generateSampleExam(studyContent, pastPaperContent, { subject });
+
+      // Tag the result so the frontend can label / attribute the paper
+      result.mode = 'sample-exam';
+      result.basedOnPaperCount = pastPapers.length;
+      return result;
+    } catch (error) {
+      logger.error('Error generating sample exam:', error);
       throw error;
     }
   }

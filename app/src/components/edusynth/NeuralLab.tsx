@@ -18,6 +18,7 @@ import {
   Pencil,
   Check,
   X,
+  Trash2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -129,6 +130,23 @@ export function NeuralLab() {
     setEditingSessionId(null);
     setEditTitle('');
   }, []);
+
+  const deleteSession = useCallback(async (sessionId: string, title: string) => {
+    if (!window.confirm(`Delete the chat "${title}"? This cannot be undone.`)) return;
+    try {
+      await chatApi.deleteSession(sessionId);
+      setChatSessions(chatSessions.filter((s) => s.id !== sessionId));
+      // If the user just deleted the chat they were viewing, reset to a blank session
+      if (activeSessionId === sessionId) {
+        clearChatMessages();
+        setActiveSessionId(null);
+      }
+      addToast({ type: 'success', title: 'Chat deleted', message: `"${title}" was removed.` });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Try again.';
+      addToast({ type: 'warning', title: 'Could not delete chat', message: msg });
+    }
+  }, [chatSessions, setChatSessions, activeSessionId, clearChatMessages, setActiveSessionId, addToast]);
 
   useEffect(() => {
     if (editingSessionId && editInputRef.current) {
@@ -328,12 +346,22 @@ export function NeuralLab() {
                           <>
                             <div className="flex items-start justify-between gap-1">
                               <p className="text-[11px] text-zinc-200 font-medium truncate leading-tight">{session.title}</p>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); startRenaming(session.id, session.title); }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-600 hover:text-zinc-300 shrink-0"
-                              >
-                                <Pencil className="w-2.5 h-2.5" />
-                              </button>
+                              <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); startRenaming(session.id, session.title); }}
+                                  title="Rename"
+                                  className="text-zinc-600 hover:text-zinc-300"
+                                >
+                                  <Pencil className="w-2.5 h-2.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); deleteSession(session.id, session.title); }}
+                                  title="Delete chat"
+                                  className="text-zinc-600 hover:text-[#EF4444]"
+                                >
+                                  <Trash2 className="w-2.5 h-2.5" />
+                                </button>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-[9px] text-zinc-600">{session.messageCount} msgs</span>
@@ -350,7 +378,7 @@ export function NeuralLab() {
                 </div>
 
                 <div className="p-2 border-t border-zinc-800/30 shrink-0">
-                  <p className="text-[8px] text-zinc-700 text-center">Double-click to rename</p>
+                  <p className="text-[8px] text-zinc-700 text-center">Double-click to rename · hover for delete</p>
                 </div>
               </Card>
             </motion.div>

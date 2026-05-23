@@ -1,4 +1,5 @@
 import { useEduSynthStore, type Module } from '@/store/edusynth-store';
+import { documentsApi } from '@/services/api';
 import { motion } from 'framer-motion';
 import {
   BookOpen,
@@ -19,6 +20,7 @@ import {
   Star,
   EyeOff,
   Upload,
+  Trash2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,6 +69,81 @@ function getStarCount(score: number): number {
   if (score >= 80) return 2;
   if (score >= 70) return 1;
   return 0;
+}
+
+/**
+ * Card UI for a single document. Used by both the Study Material panel
+ * (visible to everyone) and the Past Papers panel (lecturer-only).
+ */
+function DocumentCard({
+  doc,
+  onOpen,
+  onDelete,
+}: {
+  doc: any;
+  onOpen: () => void;
+  onDelete?: (e: React.MouseEvent) => void;
+}) {
+  const isRestricted = doc.tier === 'restricted';
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className="relative flex items-start gap-3 p-3.5 rounded-xl bg-muted/20 hover:bg-accent/30 border border-border hover:border-[#2DD4BF]/20 transition-all group text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2DD4BF]/30"
+    >
+      <div
+        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+          isRestricted
+            ? 'bg-[#F59E0B]/10 border-[#F59E0B]/20'
+            : 'bg-[#2DD4BF]/10 border-[#2DD4BF]/20'
+        }`}
+      >
+        <FileText className={`w-4 h-4 ${isRestricted ? 'text-[#F59E0B]' : 'text-[#2DD4BF]'}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-foreground group-hover:text-[#2DD4BF] transition-colors truncate">
+          {doc.title}
+        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <Badge
+            variant="outline"
+            className={`text-[8px] px-1 py-0 h-4 ${
+              isRestricted
+                ? 'border-[#F59E0B]/30 text-[#F59E0B] bg-[#F59E0B]/5'
+                : 'border-[#2DD4BF]/30 text-[#2DD4BF] bg-[#2DD4BF]/5'
+            }`}
+          >
+            {isRestricted ? '📋 Past Paper' : '📚 Study Material'}
+          </Badge>
+          {(doc.page_count || doc.totalPages) ? (
+            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+              <Clock className="w-2.5 h-2.5" />
+              {doc.page_count || doc.totalPages} pages
+            </div>
+          ) : null}
+        </div>
+      </div>
+      {onDelete ? (
+        <button
+          type="button"
+          onClick={onDelete}
+          title="Delete document"
+          className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-[#EF4444] focus:opacity-100 focus:outline-none mt-0.5"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      ) : (
+        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-[#2DD4BF] transition-colors mt-1" />
+      )}
+    </div>
+  );
 }
 
 export function CourseSector() {
@@ -561,6 +638,8 @@ function CourseDetail() {
     setSelectedModule,
     setSelectedDocument,
     submitQuizResult,
+    initializeData,
+    addToast,
     profile,
   } = useEduSynthStore();
 
@@ -575,9 +654,28 @@ function CourseDetail() {
   const classProgress = studyProgress.filter((p) => p.classroom_id === selectedClassroom.id);
 
   const isLecturer = profile?.role === 'lecturer' || profile?.role === 'teacher';
-  const visibleDocuments = isLecturer
-    ? documents
-    : documents.filter((doc: any) => doc.category !== 'exam');
+  // Two separate panels: study material is for everyone; past papers are a
+  // lecturer-only panel that students never see (and the AI uses for Sample
+  // Exam generation).
+  const studyMaterial = documents.filter((doc: any) => doc.tier !== 'restricted');
+  const pastPapers = isLecturer
+    ? documents.filter((doc: any) => doc.tier === 'restricted')
+    : [];
+
+  const handleDeleteDocument = async (doc: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const tierLabel = doc.tier === 'restricted' ? 'past paper' : 'document';
+    if (!window.confirm(`Delete the ${tierLabel} "${doc.title}"? Students will lose access immediately.`)) return;
+    try {
+      await documentsApi.delete(doc.id);
+      addToast({ type: 'success', title: 'Document deleted', message: `"${doc.title}" was removed.` });
+      // Re-pull documents + classrooms so the card disappears and any quiz/sample-exam path stays in sync
+      await initializeData();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Try again.';
+      addToast({ type: 'warning', title: 'Could not delete', message: msg });
+    }
+  };
 
   const handleQuizComplete = (correct: number, total: number) => {
     if (quizTarget) {
@@ -706,7 +804,7 @@ function CourseDetail() {
                         <button
                           onClick={() => {
                             setSelectedModule(selectedSkillNode);
-                            if (visibleDocuments.length > 0) setSelectedDocument(visibleDocuments[0]);
+                            if (studyMaterial.length > 0) setSelectedDocument(studyMaterial[0]);
                             setCurrentView('neural-lab');
                           }}
                           className="flex items-center gap-1 text-[9px] px-2.5 py-1.5 rounded-lg bg-[#2DD4BF]/10 text-[#2DD4BF] hover:bg-[#2DD4BF]/20 transition-colors border border-[#2DD4BF]/10"
@@ -745,94 +843,102 @@ function CourseDetail() {
         </Card>
       </motion.div>
 
-      {/* Documents */}
+      {/* Study Material — visible to students and lecturers */}
       <motion.div variants={itemVariants}>
         <Card className="glass border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm text-foreground flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#2DD4BF]" />
-                Secure Documents
+                Study Material
               </CardTitle>
-              <div className="flex items-center gap-2">
-                {isLecturer && documents.length !== visibleDocuments.length && (
-                  <Badge className="bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20 text-[8px]">
-                    <EyeOff className="w-2.5 h-2.5 mr-0.5" />
-                    {documents.length - visibleDocuments.length} restricted
-                  </Badge>
-                )}
-                <Badge className="bg-muted text-muted-foreground border-border text-[9px]">
-                  <Shield className="w-2.5 h-2.5 mr-0.5" />
-                  Protected Documents
-                </Badge>
-              </div>
+              <Badge className="bg-muted text-muted-foreground border-border text-[9px]">
+                <Shield className="w-2.5 h-2.5 mr-0.5" />
+                Protected
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
-            {visibleDocuments.length === 0 ? (
+            {studyMaterial.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-xs text-muted-foreground">No documents available</p>
+                <p className="text-xs text-muted-foreground">No study material yet</p>
                 <p className="text-[10px] text-muted-foreground/50 mt-1">
                   {isLecturer
-                    ? 'Upload documents to get started'
-                    : "Your lecturer hasn't shared any documents yet"}
+                    ? 'Upload notes or a textbook to get started'
+                    : "Your lecturer hasn't shared any material yet"}
                 </p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {visibleDocuments.map((doc: any) => (
-                  <button
+                {studyMaterial.map((doc: any) => (
+                  <DocumentCard
                     key={doc.id}
-                    onClick={() => {
+                    doc={doc}
+                    onOpen={() => {
                       setSelectedDocument(doc);
                       if (modules.length > 0) setSelectedModule(modules[0]);
                       setCurrentView('neural-lab');
                     }}
-                    className="flex items-start gap-3 p-3.5 rounded-xl bg-muted/20 hover:bg-accent/30 border border-border hover:border-[#2DD4BF]/20 transition-all group text-left"
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-                        doc.category === 'exam'
-                          ? 'bg-[#F59E0B]/10 border-[#F59E0B]/20'
-                          : 'bg-[#2DD4BF]/10 border-[#2DD4BF]/20'
-                      }`}
-                    >
-                      <FileText
-                        className={`w-4 h-4 ${doc.category === 'exam' ? 'text-[#F59E0B]' : 'text-[#2DD4BF]'}`}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground group-hover:text-[#2DD4BF] transition-colors truncate">
-                        {doc.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge
-                          variant="outline"
-                          className={`text-[8px] px-1 py-0 h-4 ${
-                            doc.category === 'exam'
-                              ? 'border-[#F59E0B]/30 text-[#F59E0B] bg-[#F59E0B]/5'
-                              : 'border-[#2DD4BF]/30 text-[#2DD4BF] bg-[#2DD4BF]/5'
-                          }`}
-                        >
-                          {doc.category === 'exam' ? '📋 Restricted' : '📚 Study Material'}
-                        </Badge>
-                        {(doc.page_count || doc.totalPages) && (
-                          <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                            <Clock className="w-2.5 h-2.5" />
-                            {doc.page_count || doc.totalPages} pages
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-[#2DD4BF] transition-colors mt-1" />
-                  </button>
+                    onDelete={isLecturer ? (e) => handleDeleteDocument(doc, e) : undefined}
+                  />
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Past Papers — LECTURER ONLY. Students never see this panel. */}
+      {isLecturer && (
+        <motion.div variants={itemVariants}>
+          <Card className="glass border-[#F59E0B]/30">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-sm text-foreground flex items-center gap-2">
+                  <ClipboardCheck className="w-4 h-4 text-[#F59E0B]" />
+                  Past Papers
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30 text-[8px]">
+                    <EyeOff className="w-2.5 h-2.5 mr-0.5" />
+                    Students cannot see these
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                The AI uses these only as a structural reference when generating Sample Exam papers — they are never shown to students.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {pastPapers.length === 0 ? (
+                <div className="text-center py-6">
+                  <ClipboardCheck className="w-7 h-7 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground">No past papers uploaded</p>
+                  <p className="text-[10px] text-muted-foreground/50 mt-1">
+                    Upload one and Sample Exam will mirror its structure.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {pastPapers.map((doc: any) => (
+                    <DocumentCard
+                      key={doc.id}
+                      doc={doc}
+                      onOpen={() => {
+                        setSelectedDocument(doc);
+                        if (modules.length > 0) setSelectedModule(modules[0]);
+                        setCurrentView('neural-lab');
+                      }}
+                      onDelete={(e) => handleDeleteDocument(doc, e)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Module Performance Grid */}
       {modules.length > 0 && (

@@ -1,6 +1,6 @@
 import { useEduSynthStore } from '@/store/edusynth-store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Swords, Trophy, Clock, Target, CheckCircle2, XCircle, Zap, ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
+import { Swords, Trophy, Clock, Target, CheckCircle2, XCircle, Zap, ArrowRight, RefreshCw, Loader2, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { quizApi } from '@/services/api';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { SampleExamPaper, type SampleExamPaperData } from './sample-exam-paper';
 
 interface QuizQuestion {
   question: string;
@@ -33,7 +34,13 @@ const DIFFICULTY_COLORS = {
   advanced: { bg: 'bg-[#EF4444]/10', text: 'text-[#EF4444]', border: 'border-[#EF4444]/20' },
 };
 
-function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart: (classroom: any, difficulty: string) => void }) {
+type AssessmentMode = 'challenge' | 'sample-exam';
+
+function RaidCard({ classroom, sp, onStart }: {
+  classroom: any;
+  sp: any;
+  onStart: (classroom: any, difficulty: string, mode: AssessmentMode) => void;
+}) {
   const score = sp?.ready_score ?? 0;
   const recommended = score >= 70;
   const diff = score >= 90 ? 'advanced' : score >= 80 ? 'intermediate' : 'beginner';
@@ -62,17 +69,28 @@ function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart
         </div>
 
         <div className="flex items-center gap-2 text-[9px] text-zinc-500 mb-4">
-          <Clock className="w-3 h-3" /><span>~10 min</span>
+          <Clock className="w-3 h-3" /><span>~20 min</span>
           <span>·</span>
-          <Target className="w-3 h-3" /><span>5 questions</span>
+          <Target className="w-3 h-3" /><span>10 questions</span>
+          <span>·</span>
+          <span className="text-[#F59E0B]/80">Mock exam</span>
         </div>
 
-        <Button
-          onClick={() => onStart(classroom, diff)}
-          className="w-full h-8 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20"
-        >
-          <Swords className="w-3.5 h-3.5 mr-1.5" /> Start Challenge
-        </Button>
+        <div className="space-y-2">
+          <Button
+            onClick={() => onStart(classroom, diff, 'challenge')}
+            className="w-full h-8 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20"
+          >
+            <Swords className="w-3.5 h-3.5 mr-1.5" /> Start Challenge
+          </Button>
+          <Button
+            onClick={() => onStart(classroom, diff, 'sample-exam')}
+            className="w-full h-8 text-xs bg-[#8B5CF6]/10 text-[#8B5CF6] hover:bg-[#8B5CF6]/20 border border-[#8B5CF6]/20"
+            title="A sample exam paper modelled on your lecturer's past papers"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5" /> Sample Exam Paper
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -84,6 +102,8 @@ export function MasteryRaids() {
   const [quiz, setQuiz] = useState<QuizState | null>(null);
   const [activeClassroom, setActiveClassroom] = useState<any>(null);
   const [activeDifficulty, setActiveDifficulty] = useState('intermediate');
+  const [activeMode, setActiveMode] = useState<AssessmentMode>('challenge');
+  const [samplePaper, setSamplePaper] = useState<SampleExamPaperData | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -95,45 +115,72 @@ export function MasteryRaids() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [quiz?.finished]);
 
-  const startRaid = async (classroom: any, difficulty: string) => {
+  const startRaid = async (classroom: any, difficulty: string, mode: AssessmentMode = 'challenge') => {
     if (!classroom) return;
-    setLoading(true);
     setActiveClassroom(classroom);
     setActiveDifficulty(difficulty);
-    try {
-      // Generate against the real subject name, not the synthetic classroom id
-      const res = await quizApi.generate({
-        subject: classroom.subject || classroom.name,
-        numQuestions: 5,
-        difficulty,
-      });
-      const data = (res as any)?.data;
-      const questions: QuizQuestion[] = (data?.questions ?? []).map((q: any) => {
-        // Normalise Gemini output: strip "A. " prefixes and resolve the
-        // correct answer whether it arrives as a letter or an index.
-        const rawOpts: string[] = Array.isArray(q.options) ? q.options : [];
-        const options = rawOpts.map((o) =>
-          typeof o === 'string' ? o.replace(/^\s*[A-Da-d][.)]\s*/, '').trim() : String(o)
-        );
-        let correctAnswer = 0;
-        if (typeof q.correctAnswer === 'number') {
-          correctAnswer = q.correctAnswer;
-        } else if (typeof q.correctAnswer === 'string') {
-          const letter = q.correctAnswer.trim().toUpperCase();
-          if (/^[A-D]$/.test(letter)) {
-            correctAnswer = letter.charCodeAt(0) - 65;
-          } else {
-            const idx = options.findIndex((o) => o.toLowerCase() === letter.toLowerCase());
-            if (idx >= 0) correctAnswer = idx;
-          }
+    setActiveMode(mode);
+
+    // Sample Exam takes a separate path — it fetches a full paper modelled on
+    // the lecturer's past papers and opens it as a reference document, NOT
+    // a clickable quiz.
+    if (mode === 'sample-exam') {
+      setLoading(true);
+      try {
+        const res = await quizApi.generateSampleExam({ subject: classroom.subject || classroom.name }) as any;
+        const paper = res?.data as SampleExamPaperData | undefined;
+        if (!paper || !Array.isArray(paper.sections) || paper.sections.length === 0) {
+          throw new Error('The sample exam came back empty. Try again.');
         }
-        correctAnswer = Math.max(0, Math.min(correctAnswer, Math.max(0, options.length - 1)));
-        return { question: q.question, options, correctAnswer, explanation: q.explanation ?? '' };
-      });
-      if (questions.length === 0) throw new Error('No questions generated');
+        setSamplePaper(paper);
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || err?.message || 'Generation failed';
+        toast.error('Sample Exam unavailable', { description: msg });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const subjectName = classroom.subject || classroom.name;
+      // Challenge: 10-question mock quiz from public content
+      const res = await quizApi.generate({ subject: subjectName, numQuestions: 10, difficulty });
+      const data = (res as any)?.data;
+      const questions: QuizQuestion[] = (data?.questions ?? [])
+        .map((q: any) => {
+          // Normalise Gemini output: strip "A. " prefixes and resolve the
+          // correct answer whether it arrives as a letter or an index.
+          const rawOpts: string[] = Array.isArray(q.options) ? q.options : [];
+          const options = rawOpts
+            .map((o) =>
+              typeof o === 'string' ? o.replace(/^\s*[A-Da-d][.)]\s*/, '').trim() : String(o)
+            )
+            .filter((o) => o.length > 0);
+          let correctAnswer = 0;
+          if (typeof q.correctAnswer === 'number') {
+            correctAnswer = q.correctAnswer;
+          } else if (typeof q.correctAnswer === 'string') {
+            const letter = q.correctAnswer.trim().toUpperCase();
+            if (/^[A-D]$/.test(letter)) {
+              correctAnswer = letter.charCodeAt(0) - 65;
+            } else {
+              const idx = options.findIndex((o) => o.toLowerCase() === letter.toLowerCase());
+              if (idx >= 0) correctAnswer = idx;
+            }
+          }
+          correctAnswer = Math.max(0, Math.min(correctAnswer, Math.max(0, options.length - 1)));
+          return { question: q.question, options, correctAnswer, explanation: q.explanation ?? '' };
+        })
+        // Drop any question that arrived without a real question or without at
+        // least two answer choices — otherwise the UI renders an un-answerable card.
+        .filter((q: QuizQuestion) => q.question && q.options.length >= 2);
+      if (questions.length === 0) throw new Error('No usable questions were generated. Try again.');
       setQuiz({ questions, currentIndex: 0, selected: new Array(questions.length).fill(null), showResult: false, score: 0, startTime: Date.now(), elapsed: 0, finished: false });
     } catch (err: any) {
-      toast.error('Failed to generate challenge', { description: err.message });
+      const msg = err?.response?.data?.message || err?.message || 'Generation failed';
+      toast.error('Failed to generate challenge', { description: msg });
     } finally {
       setLoading(false);
     }
@@ -157,7 +204,8 @@ export function MasteryRaids() {
         (quiz.selected[quiz.currentIndex] === quiz.questions[quiz.currentIndex].correctAnswer ? 1 : 0);
       setQuiz({ ...quiz, finished: true });
       if (activeClassroom) {
-        // Persist to the backend, then the store re-syncs every dependent view
+        // Persist to the backend, then the store re-syncs every dependent view.
+        // Only Challenges reach this code path; Sample Exam uses its own modal.
         submitQuizResult({
           subject: activeClassroom.subject || activeClassroom.name,
           difficulty: activeDifficulty,
@@ -175,7 +223,11 @@ export function MasteryRaids() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-[#2DD4BF] animate-spin mx-auto mb-3" />
-          <p className="text-sm text-zinc-400">Generating your challenge...</p>
+          <p className="text-sm text-zinc-400">
+            {activeMode === 'sample-exam'
+              ? 'Building your sample exam paper from past papers...'
+              : 'Generating your challenge...'}
+          </p>
         </div>
       </div>
     );
@@ -218,7 +270,7 @@ export function MasteryRaids() {
               <Button onClick={() => setQuiz(null)} variant="outline" className="flex-1 h-9 text-xs glass border-zinc-700/50">
                 <ArrowRight className="w-4 h-4 mr-1.5" /> Back to Challenges
               </Button>
-              <Button onClick={() => startRaid(activeClassroom, activeDifficulty)} className="flex-1 h-9 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20">
+              <Button onClick={() => startRaid(activeClassroom, activeDifficulty, activeMode)} className="flex-1 h-9 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20">
                 <RefreshCw className="w-4 h-4 mr-1.5" /> Retry
               </Button>
             </div>
@@ -315,28 +367,36 @@ export function MasteryRaids() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-6 max-w-7xl mx-auto space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-          <Swords className="w-5 h-5 text-[#F59E0B]" /> Challenges
-        </h1>
-        <p className="text-xs text-zinc-500 mt-0.5">Test your knowledge with AI-calibrated quizzes. Reach 70% readiness to unlock.</p>
-      </div>
+    <>
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-6 max-w-7xl mx-auto space-y-5">
+        <div>
+          <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
+            <Swords className="w-5 h-5 text-[#F59E0B]" /> Challenges
+          </h1>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Mock-exam quizzes (10 questions, AI-calibrated) and full Sample Exam papers modelled on your lecturer's past papers. Recommended at 70%+ readiness.
+          </p>
+        </div>
 
-      {classrooms.length === 0 ? (
-        <div className="text-center py-16">
-          <Swords className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-          <p className="text-zinc-400 font-medium">No subjects available</p>
-          <p className="text-[11px] text-zinc-600 mt-1">Upload documents to generate challenges</p>
-        </div>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {classrooms.map((c) => {
-            const sp = studyProgress.find((p) => p.classroom_id === c.id);
-            return <RaidCard key={c.id} classroom={c} sp={sp} onStart={startRaid} />;
-          })}
-        </div>
+        {classrooms.length === 0 ? (
+          <div className="text-center py-16">
+            <Swords className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+            <p className="text-zinc-400 font-medium">No subjects available</p>
+            <p className="text-[11px] text-zinc-600 mt-1">Upload documents to generate challenges</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classrooms.map((c) => {
+              const sp = studyProgress.find((p) => p.classroom_id === c.id);
+              return <RaidCard key={c.id} classroom={c} sp={sp} onStart={startRaid} />;
+            })}
+          </div>
+        )}
+      </motion.div>
+
+      {samplePaper && (
+        <SampleExamPaper paper={samplePaper} onClose={() => setSamplePaper(null)} />
       )}
-    </motion.div>
+    </>
   );
 }

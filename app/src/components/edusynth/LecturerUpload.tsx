@@ -166,16 +166,33 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                       <div className="grid grid-cols-3 gap-2">
                         {CATEGORIES.map((cat) => {
                           const Icon = cat.icon;
+                          const isSelected = category === cat.value;
+                          // Inline styles for the dynamic colour — Tailwind JIT
+                          // cannot pick up class names assembled from variables,
+                          // so a previous version of this UI had an invisible
+                          // selection state which caused past papers to be
+                          // accidentally uploaded as public study material.
                           return (
                             <button
                               key={cat.value}
+                              type="button"
                               onClick={() => setCategory(cat.value)}
-                              className={`p-3 rounded-xl border text-left transition-all ${
-                                category === cat.value
-                                  ? `bg-[${cat.color}]/10 border-[${cat.color}]/30`
+                              style={isSelected ? {
+                                backgroundColor: `${cat.color}1F`,
+                                borderColor: cat.color,
+                              } : undefined}
+                              className={`relative p-3 rounded-xl border-2 text-left transition-all ${
+                                isSelected
+                                  ? 'shadow-md'
                                   : 'bg-zinc-800/30 border-zinc-700/50 hover:border-zinc-600'
                               }`}
                             >
+                              {isSelected && (
+                                <CheckCircle2
+                                  className="absolute top-1.5 right-1.5 w-3.5 h-3.5"
+                                  style={{ color: cat.color }}
+                                />
+                              )}
                               <Icon className="w-4 h-4 mb-1.5" style={{ color: cat.color }} />
                               <p className="text-[11px] font-medium text-zinc-200">{cat.label}</p>
                               <p className="text-[9px] text-zinc-500 mt-0.5">{cat.desc}</p>
@@ -262,11 +279,25 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                       </div>
                     )}
 
-                    {/* Category badge reminder */}
-                    {category === 'exam' && (
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#F59E0B]/5 border border-[#F59E0B]/20">
-                        <AlertCircle className="w-3.5 h-3.5 text-[#F59E0B] shrink-0" />
-                        <p className="text-[10px] text-[#F59E0B]">Past papers are restricted — students cannot view or download them.</p>
+                    {/* Category confirmation strip — always shown so the
+                        lecturer can see exactly which tier this upload will
+                        land in before clicking Upload. */}
+                    {category === 'exam' ? (
+                      <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-[#F59E0B]/10 border-2 border-[#F59E0B]/40">
+                        <AlertCircle className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
+                        <div className="flex-1 text-[11px]">
+                          <p className="text-[#F59E0B] font-semibold">Uploading as RESTRICTED past paper</p>
+                          <p className="text-[#F59E0B]/80 mt-0.5">
+                            Students will NOT see this file. The AI will use it only as a structural reference when generating Sample Exam papers.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-2.5 px-3 py-2 rounded-xl bg-zinc-800/30 border border-zinc-700/50">
+                        <FileText className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-zinc-400">
+                          Uploading as <span className="text-zinc-200 font-medium">public study material</span> — students can read this. To upload a past exam paper instead, pick "Past Paper" above.
+                        </p>
                       </div>
                     )}
 

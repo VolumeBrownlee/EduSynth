@@ -1,6 +1,37 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const logger = require('../utils/logger');
 
+/**
+ * Parse a JSON response from Gemini defensively.
+ *
+ * Gemini occasionally returns truncated output, code-fenced blocks, or text
+ * around the JSON. This helper tries:
+ *   1. The raw response.
+ *   2. The response with markdown fences stripped.
+ *   3. The substring between the first `{` and the last `}`.
+ *
+ * Returns the parsed object, or null if nothing parseable was found.
+ */
+function safeParseGeminiJson(responseText) {
+  if (typeof responseText !== 'string' || !responseText.trim()) return null;
+  const candidates = [];
+  candidates.push(responseText);
+  candidates.push(responseText.replace(/```json\n?|\n?```/g, '').trim());
+  const firstBrace = responseText.indexOf('{');
+  const lastBrace = responseText.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    candidates.push(responseText.slice(firstBrace, lastBrace + 1));
+  }
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
+}
+
 class GeminiService {
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -148,6 +179,10 @@ Your response:`;
         topic = null
       } = options;
 
+      // Variation seed forces a different question set on each call so the
+      // same student doesn't see identical quizzes twice in a row.
+      const variationSeed = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
       const prompt = `Generate a quiz based on the following educational content.
 
 CONTENT:
@@ -158,6 +193,12 @@ QUIZ SPECIFICATIONS:
 - Difficulty level: ${difficulty}
 - Question types: ${questionTypes.join(', ')}
 ${topic ? `- Focus topic: ${topic}` : ''}
+- Variation seed: ${variationSeed} (use this to vary which concepts you focus on; never include the seed in your output)
+
+Important guidance for variety:
+- Cover a DIFFERENT spread of concepts each time you are asked.
+- Vary the question phrasing — do not repeat questions students may have seen.
+- Mix recall, application, and analysis questions where the content supports it.
 
 Generate the quiz in the following JSON format:
 {
@@ -185,7 +226,8 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting.`;
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
           ...this.generationConfig,
-          temperature: 0.3,
+          // Higher temperature => more variation between regenerations
+          temperature: 0.8,
           responseMimeType: 'application/json'
         },
         safetySettings: this.safetySettings
@@ -194,8 +236,9 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting.`;
       const responseText = result.response.text();
       
       // Clean and parse JSON
-      const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      return JSON.parse(cleanJson);
+      const parsed = safeParseGeminiJson(responseText);
+      if (!parsed) throw new Error('Gemini returned unparseable JSON');
+      return parsed;
     } catch (error) {
       logger.error('Error generating quiz:', error);
       throw new Error('Failed to generate quiz');
@@ -250,16 +293,24 @@ Return ONLY valid JSON.`;
         generationConfig: {
           ...this.generationConfig,
           temperature: 0.2,
+          maxOutputTokens: 4096,
           responseMimeType: 'application/json'
         }
       });
 
       const responseText = result.response.text();
-      const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      return JSON.parse(cleanJson);
+      const parsed = safeParseGeminiJson(responseText);
+      if (!parsed) {
+        // Truncated or malformed output — calibration is optional, so skip it
+        logger.warn('analyzeExamDifficulty: Gemini returned unparseable JSON, skipping calibration');
+        return null;
+      }
+      return parsed;
     } catch (error) {
       logger.error('Error analyzing exam difficulty:', error);
-      throw new Error('Failed to analyze exam difficulty');
+      // Returning null instead of throwing — the ragEngine treats null as
+      // "no calibration available" and falls back to the requested difficulty.
+      return null;
     }
   }
 
@@ -336,8 +387,9 @@ Return ONLY valid JSON.`;
       });
 
       const responseText = result.response.text();
-      const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      return JSON.parse(cleanJson);
+      const parsed = safeParseGeminiJson(responseText);
+      if (!parsed) throw new Error('Gemini returned unparseable JSON');
+      return parsed;
     } catch (error) {
       logger.error('Error classifying document:', error);
       // Default to public if classification fails
@@ -404,8 +456,9 @@ Return ONLY valid JSON.`;
       });
 
       const responseText = result.response.text();
-      const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      return JSON.parse(cleanJson);
+      const parsed = safeParseGeminiJson(responseText);
+      if (!parsed) throw new Error('Gemini returned unparseable JSON');
+      return parsed;
     } catch (error) {
       logger.error('Error generating study module:', error);
       throw new Error('Failed to generate study module');
@@ -459,11 +512,138 @@ Return ONLY valid JSON in this exact shape:
       });
 
       const responseText = result.response.text();
-      const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      return JSON.parse(cleanJson);
+      const parsed = safeParseGeminiJson(responseText);
+      if (!parsed) throw new Error('Gemini returned unparseable JSON');
+      return parsed;
     } catch (error) {
       logger.error('Error generating flashcards:', error);
       throw new Error('Failed to generate flashcards');
+    }
+  }
+
+  /**
+   * Generate a SAMPLE EXAM PAPER for a subject.
+   *
+   * The goal is rehearsal — students see the exact structure, question
+   * types, marks layout and instructions of their lecturer's past papers,
+   * but with brand-new questions drawn from the public study material.
+   *
+   * It is intentionally NOT a multiple-choice quiz: questions are free
+   * response ("Explain…", "Calculate…", "Discuss…") and each carries a
+   * hidden model answer so the student can self-mark after attempting.
+   */
+  async generateSampleExam(studyContent, pastPaperContent, options = {}) {
+    try {
+      const { subject = 'this course' } = options;
+      const variationSeed = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
+      const prompt = `You are generating a SAMPLE EXAM PAPER for the course "${subject}".
+Its purpose is to help a student rehearse the FORMAT of the real exam so
+the real exam does not come as a shock — NOT to act as a multiple-choice
+quiz. (Multiple-choice quizzes are a separate feature in this app.)
+
+You are given two sources:
+
+=== STUDY MATERIAL (public — the SOURCE of every question's content) ===
+${studyContent}
+
+=== LECTURER'S PAST EXAM PAPERS (restricted — STRUCTURE reference only) ===
+${pastPaperContent}
+
+YOUR TASK — DO ALL OF THIS:
+
+Step 1. Read the past paper(s) and identify their STRUCTURE precisely:
+   - Total duration in minutes and total marks.
+   - General exam instructions ("Answer ALL questions in Section A", etc.).
+   - The list of sections (e.g. "Section A", "Section B"), each with its
+     own instructions and its own list of questions.
+   - For each question: its number ("1", "1(a)"…), its type (short answer,
+     long answer/essay, calculation, theory, practical, description,
+     discussion, etc.), and its marks.
+
+Step 2. Generate a BRAND-NEW exam paper that mirrors that structure
+   EXACTLY:
+   - Same number of sections with the same names.
+   - Same number of questions per section.
+   - Same question TYPES in the same positions.
+   - Same marks per question and the same total.
+   - Same general instructions, adjusted only as needed.
+
+Step 3. Every question's CONTENT must come from the STUDY MATERIAL.
+   Questions must be NEW — never copy or paraphrase a past-paper question.
+   The past papers are a STRUCTURAL template, not a question bank.
+
+Step 4. DO NOT include multiple-choice options. Questions are open-ended:
+   "Explain ...", "Calculate ...", "Describe ...", "Discuss ...", etc.,
+   matching the verbs the past paper actually uses.
+
+Step 5. For every question, also provide a MODEL ANSWER — concise, in the
+   style of a MARKING GUIDE, not a full essay. The student will use it to
+   self-mark, so it just needs to capture the key points.
+
+OUTPUT BREVITY (CRITICAL — the JSON must fit within the response budget):
+- Cap the total number of questions at TWELVE across all sections, even
+  if the past paper has more. Pick the most representative ones.
+- Keep each modelAnswer to AT MOST 3 short sentences (≈40 words).
+- Keep each section's "instructions" to ONE short sentence.
+- Keep the overall "instructions" list to AT MOST 3 short items.
+- Keep "questionText" to ≤30 words.
+- Do not include any text outside the JSON object.
+
+Variation seed: ${variationSeed} — use it to vary which study topics you
+draw on; do NOT include the seed in your output.
+
+Return ONLY valid JSON in this exact shape:
+{
+  "title": "${subject} — Sample Exam Paper",
+  "subject": "${subject}",
+  "durationMinutes": 120,
+  "totalMarks": 100,
+  "instructions": [
+    "Answer ALL questions in Section A.",
+    "Answer ANY TWO questions in Section B."
+  ],
+  "sections": [
+    {
+      "name": "Section A",
+      "instructions": "Answer all questions. Each carries 5 marks.",
+      "questions": [
+        {
+          "number": "1",
+          "questionText": "Explain the role of ... in ...",
+          "marks": 5,
+          "type": "short_answer",
+          "modelAnswer": "Concise model answer or marking guide so the student can self-mark."
+        }
+      ]
+    }
+  ]
+}
+
+IMPORTANT:
+- Return ONLY valid JSON, no markdown formatting.
+- Do not include any answer-choice arrays.
+- durationMinutes, totalMarks and the list of sections/questions must
+  reflect what the past paper actually shows.`;
+
+      const result = await this.model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          ...this.generationConfig,
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          responseMimeType: 'application/json'
+        },
+        safetySettings: this.safetySettings
+      });
+
+      const responseText = result.response.text();
+      const parsed = safeParseGeminiJson(responseText);
+      if (!parsed) throw new Error('Gemini returned unparseable JSON for sample exam');
+      return parsed;
+    } catch (error) {
+      logger.error('Error generating sample exam:', error);
+      throw new Error('Failed to generate sample exam');
     }
   }
 }

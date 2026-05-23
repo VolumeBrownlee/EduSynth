@@ -44,6 +44,8 @@ export interface Document {
   storage_path: string;
   processing_status: string;
   isProcessed?: boolean;
+  /** 'public' for study material, 'restricted' for past exam papers. */
+  tier: 'public' | 'restricted';
   category: string;
   page_count: number;
   file_size: number;
@@ -616,6 +618,7 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
           storage_path: d.filePath || d.storage_path || '',
           processing_status: d.processingStatus || d.processing_status || 'pending',
           isProcessed: (d.processingStatus || d.processing_status) === 'completed',
+          tier: d.tier === 'restricted' ? 'restricted' : 'public',
           category: d.tier || d.category || 'textbook',
           page_count: d.pageCount || d.page_count || 0,
           file_size: d.fileSize || d.file_size || 0,
@@ -634,6 +637,11 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
           });
           const classrooms: Classroom[] = Array.from(subjectMap.entries()).map(([subject, docs]) => {
             const cid = `cls-${subject.toLowerCase().replace(/\s+/g, '-')}`;
+            // Past papers are a structural reference for Sample Exam — they
+            // are NOT study modules. Keep them on the classroom's documents
+            // array (so the lecturer can see + delete them) but never build
+            // a skill-tree module from them.
+            const studyDocs = docs.filter((d) => d.tier !== 'restricted');
             return {
               id: cid,
               name: subject,
@@ -642,7 +650,7 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
               invite_code: '',
               lecturer_id: '',
               documents: docs,
-              modules: docs.map((d, j) => ({
+              modules: studyDocs.map((d, j) => ({
                 id: `mod-${d.id}`,
                 classroom_id: cid,
                 name: d.topic || d.title,

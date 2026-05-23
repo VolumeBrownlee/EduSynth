@@ -170,7 +170,12 @@ export const quizApi = {
     documentIds?: string[];
     count?: number;
     difficulty?: string;
-  }) => api.post('/quiz/flashcards', params)
+  }) => api.post('/quiz/flashcards', params),
+
+  generateSampleExam: (params: { subject: string }) =>
+    // Sample-exam generation is heavy (a full structured paper + model
+    // answers), so it gets a longer per-call timeout than the global 30s.
+    api.post('/quiz/sample-exam', params, { timeout: 90000 }),
 };
 
 // Analytics API

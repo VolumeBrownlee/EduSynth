@@ -154,6 +154,27 @@ router.post('/module', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * @route   POST /api/quiz/sample-exam
+ * @desc    Generate a sample exam paper modelled on the lecturer's past papers
+ * @access  Private
+ */
+router.post('/sample-exam', asyncHandler(async (req, res) => {
+  const { subject } = req.body;
+
+  if (!subject) {
+    return res.status(400).json({ success: false, message: 'Subject is required' });
+  }
+
+  try {
+    const exam = await ragEngine.generateSampleExam(req.tenantId, { subject });
+    res.json({ success: true, data: exam });
+  } catch (err) {
+    // Bubble friendly messages back to the student verbatim
+    return res.status(400).json({ success: false, message: err.message });
+  }
+}));
+
+/**
  * @route   POST /api/quiz/flashcards
  * @desc    Generate active-recall flashcards from public content
  * @access  Private
