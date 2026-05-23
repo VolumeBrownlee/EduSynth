@@ -409,7 +409,7 @@ export function CommandCenter() {
                 </div>
               </div>
               <p className="mt-3 text-[11px] text-center font-medium">
-                {avgReadyScore >= 70 ? <span className="text-[#2DD4BF]">✓ Ready for Challenges</span> : <span className="text-zinc-500">Study more to unlock challenges</span>}
+                {avgReadyScore >= 70 ? <span className="text-[#2DD4BF]">✓ Ready for Challenges</span> : <span className="text-zinc-500">Recommended at 70%+ — keep studying</span>}
               </p>
             </CardContent>
           </Card>

@@ -101,7 +101,7 @@ export function AnalyticsView() {
           <CardContent className="flex flex-col items-center pb-5">
             <ReadyScoreGauge score={avgScore} size={180} />
             <p className="text-xs text-center mt-3 text-zinc-500">
-              {avgScore >= 70 ? '✓ You\'re challenge-ready across subjects!' : `${70 - avgScore}% more needed for challenge access`}
+              {avgScore >= 70 ? '✓ You\'re challenge-ready across subjects!' : `${70 - avgScore}% more to reach the recommended challenge readiness`}
             </p>
           </CardContent>
         </Card>

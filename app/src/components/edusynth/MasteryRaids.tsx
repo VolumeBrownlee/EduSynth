@@ -1,6 +1,6 @@
 import { useEduSynthStore } from '@/store/edusynth-store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Swords, Lock, Trophy, Clock, Target, CheckCircle2, XCircle, Zap, ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
+import { Swords, Trophy, Clock, Target, CheckCircle2, XCircle, Zap, ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,32 +35,30 @@ const DIFFICULTY_COLORS = {
 
 function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart: (classroom: any, difficulty: string) => void }) {
   const score = sp?.ready_score ?? 0;
-  const unlocked = score >= 70;
+  const recommended = score >= 70;
   const diff = score >= 90 ? 'advanced' : score >= 80 ? 'intermediate' : 'beginner';
   const dc = DIFFICULTY_COLORS[diff] ?? DIFFICULTY_COLORS.beginner;
 
   return (
-    <Card className={`glass border-zinc-800/50 card-depth-2 transition-all ${unlocked ? 'hover:border-[#2DD4BF]/30 card-lift' : 'opacity-60'}`}>
+    <Card className="glass border-zinc-800/50 card-depth-2 hover:border-[#2DD4BF]/30 card-lift transition-all">
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center border border-[#F59E0B]/20">
             <Swords className="w-5 h-5 text-[#F59E0B]" />
           </div>
-          {unlocked ? (
-            <Badge className={`${dc.bg} ${dc.text} ${dc.border} text-[9px]`}>{diff}</Badge>
-          ) : (
-            <Badge className="bg-zinc-800 text-zinc-500 border-zinc-700/30 text-[9px]"><Lock className="w-2.5 h-2.5 mr-1" />Locked</Badge>
-          )}
+          <Badge className={`${dc.bg} ${dc.text} ${dc.border} text-[9px]`}>{diff}</Badge>
         </div>
         <h3 className="font-semibold text-zinc-100 text-sm mb-0.5">{classroom.name}</h3>
-        <p className="text-[10px] text-zinc-500 mb-3">{classroom.documents.length} docs · {unlocked ? 'Ready to start!' : `Need ${Math.max(0, 70 - score)}% more readiness`}</p>
+        <p className="text-[10px] text-zinc-500 mb-3">
+          {classroom.documents.length} docs · {recommended ? 'Ready to start' : 'Recommended at 70%+ readiness'}
+        </p>
 
         <div className="mb-3">
           <div className="flex justify-between text-[9px] mb-1">
             <span className="text-zinc-500">Readiness</span>
-            <span className={score >= 70 ? 'text-[#2DD4BF]' : 'text-zinc-500'}>{score}%</span>
+            <span className={recommended ? 'text-[#2DD4BF]' : 'text-zinc-500'}>{score}%</span>
           </div>
-          <Progress value={score} className={`h-1.5 ${score >= 70 ? '[&>div]:bg-gradient-to-r [&>div]:from-[#2DD4BF] [&>div]:to-[#06B6D4]' : '[&>div]:bg-zinc-600'}`} />
+          <Progress value={score} className={`h-1.5 ${recommended ? '[&>div]:bg-gradient-to-r [&>div]:from-[#2DD4BF] [&>div]:to-[#06B6D4]' : '[&>div]:bg-zinc-600'}`} />
         </div>
 
         <div className="flex items-center gap-2 text-[9px] text-zinc-500 mb-4">
@@ -71,10 +69,9 @@ function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart
 
         <Button
           onClick={() => onStart(classroom, diff)}
-          disabled={!unlocked}
-          className={`w-full h-8 text-xs ${unlocked ? 'bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20' : 'bg-zinc-800/30 text-zinc-600 border-zinc-700/30 cursor-not-allowed'}`}
+          className="w-full h-8 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20"
         >
-          {unlocked ? <><Swords className="w-3.5 h-3.5 mr-1.5" /> Start Challenge</> : <><Lock className="w-3.5 h-3.5 mr-1.5" /> Locked</>}
+          <Swords className="w-3.5 h-3.5 mr-1.5" /> Start Challenge
         </Button>
       </CardContent>
     </Card>
@@ -330,7 +327,7 @@ export function MasteryRaids() {
         <div className="text-center py-16">
           <Swords className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
           <p className="text-zinc-400 font-medium">No subjects available</p>
-          <p className="text-[11px] text-zinc-600 mt-1">Upload documents and study them to unlock challenges</p>
+          <p className="text-[11px] text-zinc-600 mt-1">Upload documents to generate challenges</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
