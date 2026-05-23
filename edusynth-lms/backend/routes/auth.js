@@ -232,10 +232,16 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
     });
   }
 
-  // Legacy users created before study handles existed get one lazily
+  // Legacy users created before study handles existed get one lazily.
+  // Wrapped defensively — a study-handle issue must never block sign-in
+  // or leave the dashboard without a profile to render.
   if (!user.studyHandle) {
-    user.studyHandle = await User.generateStudyHandle(user.tenantId);
-    await user.save();
+    try {
+      user.studyHandle = await User.generateStudyHandle(user.tenantId);
+      await user.save();
+    } catch (handleError) {
+      logger.warn(`Could not assign study handle for user ${user._id}: ${handleError.message}`);
+    }
   }
 
   res.json({

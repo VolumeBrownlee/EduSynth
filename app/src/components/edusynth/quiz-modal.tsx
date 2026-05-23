@@ -74,11 +74,11 @@ interface QuizModalProps {
   subject: string;
   topic: string;
   onClose: () => void;
-  onComplete: (score: number) => void;
+  onComplete: (correct: number, total: number) => void;
 }
 
 export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProps) {
-  const { addToast, triggerXpAnimation } = useEduSynthStore();
+  const { triggerXpAnimation } = useEduSynthStore();
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(true);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -143,17 +143,12 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
     } else {
       const score = Math.round((correctCount / questions.length) * 100);
       setIsComplete(true);
-      onComplete(score);
-      // Trigger XP animation and toast on quiz completion
-      const xpEarned = Math.round(score * 0.5);
-      triggerXpAnimation(xpEarned, window.innerWidth / 2, window.innerHeight / 2);
-      addToast({
-        type: score >= 70 ? 'success' : 'info',
-        title: score >= 70 ? 'Quiz Complete! 🎉' : 'Quiz Finished',
-        message: `You scored ${score}% and earned +${xpEarned} XP`,
-      });
+      // Hand the raw result to the parent — the store persists it and owns the
+      // success toast so XP figures come from the server, not a local guess.
+      onComplete(correctCount, questions.length);
+      triggerXpAnimation(Math.round(score * 0.5), window.innerWidth / 2, window.innerHeight / 2);
     }
-  }, [currentIndex, questions.length, correctCount, onComplete, triggerXpAnimation, addToast]);
+  }, [currentIndex, questions.length, correctCount, onComplete, triggerXpAnimation]);
 
   const handleRestart = useCallback(() => {
     setCurrentIndex(0);

@@ -20,11 +20,11 @@ export function AiRecommendations() {
     if (mid.length > 0) {
       const sp = mid[0];
       const c = classrooms.find((x) => x.id === sp.classroom_id);
-      if (c) recs.push({ title: `Continue ${c.name}`, reason: 'Almost raid-ready!', action: 'Keep Going', color: '#F59E0B', classroomId: c.id });
+      if (c) recs.push({ title: `Continue ${c.name}`, reason: 'Almost challenge-ready!', action: 'Keep Going', color: '#F59E0B', classroomId: c.id });
     }
 
     if (studyProgress.some((p) => p.ready_score >= 70)) {
-      recs.push({ title: 'Challenge Yourself', reason: 'You\'re ready for a Mastery Raid', action: 'Start Raid', color: '#2DD4BF' });
+      recs.push({ title: 'Challenge Yourself', reason: 'You\'re ready for a Challenge', action: 'Start Challenge', color: '#2DD4BF' });
     }
 
     if (recs.length === 0) {
@@ -51,7 +51,7 @@ export function AiRecommendations() {
                 const c = classrooms.find((x) => x.id === rec.classroomId);
                 if (c) setSelectedClassroom(c);
                 setCurrentView('course-sector');
-              } else if (rec.action === 'Start Raid') {
+              } else if (rec.action === 'Start Challenge') {
                 setCurrentView('mastery-raids');
               } else {
                 setCurrentView('course-sector');

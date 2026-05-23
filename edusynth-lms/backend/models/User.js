@@ -62,8 +62,8 @@ const userSchema = new mongoose.Schema({
   },
   studyHandle: {
     type: String,
-    trim: true,
-    default: null
+    trim: true
+    // No default — the field stays absent until set, so it never collides.
   },
   isActive: {
     type: Boolean,
@@ -84,8 +84,10 @@ const userSchema = new mongoose.Schema({
 // Compound index for unique email per tenant
 userSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 userSchema.index({ tenantId: 1, registrationId: 1 }, { unique: true });
-// Study handle is unique per tenant; sparse so legacy users without one are ignored
-userSchema.index({ tenantId: 1, studyHandle: 1 }, { unique: true, sparse: true });
+// Plain (non-unique) index for study handle lookups — uniqueness is enforced
+// in application code (registration + update both check first). A unique DB
+// index is deliberately avoided so legacy/empty handles can never collide.
+userSchema.index({ tenantId: 1, studyHandle: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {

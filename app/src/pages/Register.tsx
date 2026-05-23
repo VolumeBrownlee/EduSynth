@@ -24,6 +24,7 @@ export default function Register() {
     confirmPassword: '',
     registrationId: '',
     tenantCode: '',
+    studyHandle: '', // Optional private leaderboard alias
     role: 'student', // Default
     adminSecret: ''  // New field
   });
@@ -55,6 +56,7 @@ export default function Register() {
         lastName: formData.lastName,
         registrationId: formData.registrationId,
         tenantCode: formData.tenantCode,
+        studyHandle: formData.studyHandle.trim(),
         role: backendRole,
         adminSecret: formData.adminSecret,
       } as any);
@@ -247,6 +249,26 @@ export default function Register() {
     </div>
   </div>
 </div>
+                {formData.role === 'student' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="studyHandle">
+                      Study Handle <span className="text-xs text-muted-foreground">(optional)</span>
+                    </Label>
+                    <Input
+                      id="studyHandle"
+                      name="studyHandle"
+                      placeholder="e.g., SwiftFalcon"
+                      value={formData.studyHandle}
+                      onChange={handleChange}
+                      maxLength={24}
+                      className="glass-input"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your private name on leaderboards — classmates won't see your real name.
+                      Leave blank and we'll pick one for you.
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="tenantCode">Organization Code</Label>
                   <Input

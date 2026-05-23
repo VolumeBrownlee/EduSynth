@@ -49,10 +49,10 @@ import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
 
 const allNavItems = [
-  { id: 'command-center' as const, label: 'Command', icon: LayoutDashboard, shortcut: '⌘1', roles: ['student', 'lecturer'] },
+  { id: 'command-center' as const, label: 'Dashboard', icon: LayoutDashboard, shortcut: '⌘1', roles: ['student', 'lecturer'] },
   { id: 'course-sector' as const, label: 'Courses', icon: BookOpen, shortcut: '⌘2', roles: ['student', 'lecturer'] },
   { id: 'neural-lab' as const, label: 'Neural Lab', icon: Brain, shortcut: '⌘3', roles: ['student', 'lecturer'] },
-  { id: 'mastery-raids' as const, label: 'Raids', icon: Swords, shortcut: '⌘4', roles: ['student', 'lecturer'] },
+  { id: 'mastery-raids' as const, label: 'Challenges', icon: Swords, shortcut: '⌘4', roles: ['student', 'lecturer'] },
   { id: 'analytics' as const, label: 'Analytics', icon: BarChart3, shortcut: '⌘5', roles: ['lecturer'] },
   { id: 'achievements' as const, label: 'Badges', icon: Award, shortcut: '⌘6', roles: ['student', 'lecturer'] },
   { id: 'leaderboard' as const, label: 'Ranks', icon: Trophy, shortcut: '⌘7', roles: ['student', 'lecturer'] },

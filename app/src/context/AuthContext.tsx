@@ -8,6 +8,7 @@ interface User {
   firstName: string;
   lastName: string;
   fullName: string;
+  studyHandle?: string;
   role: 'admin' | 'teacher' | 'student';
   registrationId: string;
   tenantId: string;
@@ -31,6 +32,7 @@ interface RegisterData {
   lastName: string;
   registrationId: string;
   tenantCode: string;
+  studyHandle?: string;
   role?: string;
 }
 

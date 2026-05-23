@@ -111,7 +111,7 @@ function CourseList() {
               <BookOpen className="w-5 h-5 text-[#2DD4BF]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">Course Sector</h2>
+              <h2 className="text-xl font-bold text-foreground">Courses</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {isLecturer ? 'Manage your courses and upload materials' : 'Select a course to explore your skill tree'}
               </p>
@@ -560,6 +560,7 @@ function CourseDetail() {
     setCurrentView,
     setSelectedModule,
     setSelectedDocument,
+    submitQuizResult,
     profile,
   } = useEduSynthStore();
 
@@ -578,25 +579,18 @@ function CourseDetail() {
     ? documents
     : documents.filter((doc: any) => doc.category !== 'exam');
 
-  const handleQuizComplete = (score: number) => {
-    if (profile && quizTarget) {
-      const currentProgress = classProgress.find((p) => p.module_id === quizTarget.moduleId);
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const token = localStorage.getItem('token');
-      fetch(`${apiBase}/analytics/progress`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          classroom_id: selectedClassroom.id,
-          module_id: quizTarget.moduleId,
-          quiz_avg: score,
-          interaction_depth: currentProgress?.interaction_depth || 0,
-          queries_count: currentProgress?.queries_count || 0,
-        }),
-      }).catch(() => {});
+  const handleQuizComplete = (correct: number, total: number) => {
+    if (quizTarget) {
+      // Persist the attempt; the store then re-syncs progress, XP and achievements
+      submitQuizResult({
+        subject: quizTarget.subject,
+        topic: quizTarget.topic,
+        difficulty: 'intermediate',
+        correctAnswers: correct,
+        totalQuestions: total,
+        classroomId: selectedClassroom.id,
+        quizTitle: `${quizTarget.topic} Quiz`,
+      });
     }
     setQuizTarget(null);
   };
@@ -769,7 +763,7 @@ function CourseDetail() {
                 )}
                 <Badge className="bg-muted text-muted-foreground border-border text-[9px]">
                   <Shield className="w-2.5 h-2.5 mr-0.5" />
-                  Vault Protected
+                  Protected Documents
                 </Badge>
               </div>
             </div>

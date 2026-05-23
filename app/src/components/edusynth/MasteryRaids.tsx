@@ -33,7 +33,7 @@ const DIFFICULTY_COLORS = {
   advanced: { bg: 'bg-[#EF4444]/10', text: 'text-[#EF4444]', border: 'border-[#EF4444]/20' },
 };
 
-function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart: (subject: string, difficulty: string) => void }) {
+function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart: (classroom: any, difficulty: string) => void }) {
   const score = sp?.ready_score ?? 0;
   const unlocked = score >= 70;
   const diff = score >= 90 ? 'advanced' : score >= 80 ? 'intermediate' : 'beginner';
@@ -53,7 +53,7 @@ function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart
           )}
         </div>
         <h3 className="font-semibold text-zinc-100 text-sm mb-0.5">{classroom.name}</h3>
-        <p className="text-[10px] text-zinc-500 mb-3">{classroom.documents.length} docs · {unlocked ? 'Ready to raid!' : `Need ${Math.max(0, 70 - score)}% more readiness`}</p>
+        <p className="text-[10px] text-zinc-500 mb-3">{classroom.documents.length} docs · {unlocked ? 'Ready to start!' : `Need ${Math.max(0, 70 - score)}% more readiness`}</p>
 
         <div className="mb-3">
           <div className="flex justify-between text-[9px] mb-1">
@@ -70,11 +70,11 @@ function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart
         </div>
 
         <Button
-          onClick={() => onStart(classroom.id, diff)}
+          onClick={() => onStart(classroom, diff)}
           disabled={!unlocked}
           className={`w-full h-8 text-xs ${unlocked ? 'bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20' : 'bg-zinc-800/30 text-zinc-600 border-zinc-700/30 cursor-not-allowed'}`}
         >
-          {unlocked ? <><Swords className="w-3.5 h-3.5 mr-1.5" /> Start Raid</> : <><Lock className="w-3.5 h-3.5 mr-1.5" /> Locked</>}
+          {unlocked ? <><Swords className="w-3.5 h-3.5 mr-1.5" /> Start Challenge</> : <><Lock className="w-3.5 h-3.5 mr-1.5" /> Locked</>}
         </Button>
       </CardContent>
     </Card>
@@ -82,10 +82,11 @@ function RaidCard({ classroom, sp, onStart }: { classroom: any; sp: any; onStart
 }
 
 export function MasteryRaids() {
-  const { classrooms, studyProgress, recordQuizResult, awardXP } = useEduSynthStore();
+  const { classrooms, studyProgress, submitQuizResult } = useEduSynthStore();
   const [loading, setLoading] = useState(false);
   const [quiz, setQuiz] = useState<QuizState | null>(null);
-  const [activeSubject, setActiveSubject] = useState<string | null>(null);
+  const [activeClassroom, setActiveClassroom] = useState<any>(null);
+  const [activeDifficulty, setActiveDifficulty] = useState('intermediate');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -97,22 +98,45 @@ export function MasteryRaids() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [quiz?.finished]);
 
-  const startRaid = async (subjectId: string, difficulty: string) => {
+  const startRaid = async (classroom: any, difficulty: string) => {
+    if (!classroom) return;
     setLoading(true);
-    setActiveSubject(subjectId);
+    setActiveClassroom(classroom);
+    setActiveDifficulty(difficulty);
     try {
-      const res = await quizApi.generate({ subject: subjectId, numQuestions: 5, difficulty });
+      // Generate against the real subject name, not the synthetic classroom id
+      const res = await quizApi.generate({
+        subject: classroom.subject || classroom.name,
+        numQuestions: 5,
+        difficulty,
+      });
       const data = (res as any)?.data;
-      const questions: QuizQuestion[] = (data?.questions ?? []).map((q: any) => ({
-        question: q.question,
-        options: q.options,
-        correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
-        explanation: q.explanation ?? '',
-      }));
+      const questions: QuizQuestion[] = (data?.questions ?? []).map((q: any) => {
+        // Normalise Gemini output: strip "A. " prefixes and resolve the
+        // correct answer whether it arrives as a letter or an index.
+        const rawOpts: string[] = Array.isArray(q.options) ? q.options : [];
+        const options = rawOpts.map((o) =>
+          typeof o === 'string' ? o.replace(/^\s*[A-Da-d][.)]\s*/, '').trim() : String(o)
+        );
+        let correctAnswer = 0;
+        if (typeof q.correctAnswer === 'number') {
+          correctAnswer = q.correctAnswer;
+        } else if (typeof q.correctAnswer === 'string') {
+          const letter = q.correctAnswer.trim().toUpperCase();
+          if (/^[A-D]$/.test(letter)) {
+            correctAnswer = letter.charCodeAt(0) - 65;
+          } else {
+            const idx = options.findIndex((o) => o.toLowerCase() === letter.toLowerCase());
+            if (idx >= 0) correctAnswer = idx;
+          }
+        }
+        correctAnswer = Math.max(0, Math.min(correctAnswer, Math.max(0, options.length - 1)));
+        return { question: q.question, options, correctAnswer, explanation: q.explanation ?? '' };
+      });
       if (questions.length === 0) throw new Error('No questions generated');
       setQuiz({ questions, currentIndex: 0, selected: new Array(questions.length).fill(null), showResult: false, score: 0, startTime: Date.now(), elapsed: 0, finished: false });
     } catch (err: any) {
-      toast.error('Failed to generate quiz', { description: err.message });
+      toast.error('Failed to generate challenge', { description: err.message });
     } finally {
       setLoading(false);
     }
@@ -132,8 +156,20 @@ export function MasteryRaids() {
       setQuiz({ ...quiz, currentIndex: quiz.currentIndex + 1, showResult: false });
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
+      const finalCorrect = quiz.score +
+        (quiz.selected[quiz.currentIndex] === quiz.questions[quiz.currentIndex].correctAnswer ? 1 : 0);
       setQuiz({ ...quiz, finished: true });
-      recordQuizResult(quiz.score + (quiz.selected[quiz.currentIndex] === quiz.questions[quiz.currentIndex].correctAnswer ? 1 : 0), quiz.questions.length, activeSubject ?? undefined);
+      if (activeClassroom) {
+        // Persist to the backend, then the store re-syncs every dependent view
+        submitQuizResult({
+          subject: activeClassroom.subject || activeClassroom.name,
+          difficulty: activeDifficulty,
+          correctAnswers: finalCorrect,
+          totalQuestions: quiz.questions.length,
+          classroomId: activeClassroom.id,
+          quizTitle: `${activeClassroom.name} Challenge`,
+        });
+      }
     }
   };
 
@@ -142,7 +178,7 @@ export function MasteryRaids() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-[#2DD4BF] animate-spin mx-auto mb-3" />
-          <p className="text-sm text-zinc-400">Generating your raid...</p>
+          <p className="text-sm text-zinc-400">Generating your challenge...</p>
         </div>
       </div>
     );
@@ -163,7 +199,7 @@ export function MasteryRaids() {
               className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-5 ${passed ? 'bg-[#2DD4BF]/10 border border-[#2DD4BF]/20' : 'bg-[#EF4444]/10 border border-[#EF4444]/20'}`}>
               {passed ? <Trophy className="w-10 h-10 text-[#2DD4BF]" /> : <XCircle className="w-10 h-10 text-[#EF4444]" />}
             </motion.div>
-            <h2 className="text-2xl font-bold text-zinc-100 mb-1">{passed ? 'Raid Complete!' : 'Keep Training'}</h2>
+            <h2 className="text-2xl font-bold text-zinc-100 mb-1">{passed ? 'Challenge Complete!' : 'Keep Training'}</h2>
             <p className="text-zinc-500 text-sm mb-6">{passed ? 'You\'ve proven your mastery!' : 'Study more and try again.'}</p>
             <div className="text-4xl font-bold mb-1" style={{ color: passed ? '#2DD4BF' : '#EF4444' }}>{pct}%</div>
             <p className="text-xs text-zinc-500 mb-5">{finalScore}/{quiz.questions.length} correct · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}</p>
@@ -183,9 +219,9 @@ export function MasteryRaids() {
 
             <div className="flex gap-2">
               <Button onClick={() => setQuiz(null)} variant="outline" className="flex-1 h-9 text-xs glass border-zinc-700/50">
-                <ArrowRight className="w-4 h-4 mr-1.5" /> Back to Raids
+                <ArrowRight className="w-4 h-4 mr-1.5" /> Back to Challenges
               </Button>
-              <Button onClick={() => startRaid(activeSubject!, 'intermediate')} className="flex-1 h-9 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20">
+              <Button onClick={() => startRaid(activeClassroom, activeDifficulty)} className="flex-1 h-9 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20">
                 <RefreshCw className="w-4 h-4 mr-1.5" /> Retry
               </Button>
             </div>
@@ -274,7 +310,7 @@ export function MasteryRaids() {
 
         {quiz.showResult && (
           <Button onClick={nextQuestion} className="w-full h-10 bg-[#2DD4BF]/10 text-[#2DD4BF] hover:bg-[#2DD4BF]/20 border border-[#2DD4BF]/20">
-            {quiz.currentIndex < quiz.questions.length - 1 ? <><ArrowRight className="w-4 h-4 mr-1.5" /> Next Question</> : <><Trophy className="w-4 h-4 mr-1.5" /> Finish Raid</>}
+            {quiz.currentIndex < quiz.questions.length - 1 ? <><ArrowRight className="w-4 h-4 mr-1.5" /> Next Question</> : <><Trophy className="w-4 h-4 mr-1.5" /> Finish Challenge</>}
           </Button>
         )}
       </motion.div>
@@ -285,7 +321,7 @@ export function MasteryRaids() {
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-6 max-w-7xl mx-auto space-y-5">
       <div>
         <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-          <Swords className="w-5 h-5 text-[#F59E0B]" /> Mastery Raids
+          <Swords className="w-5 h-5 text-[#F59E0B]" /> Challenges
         </h1>
         <p className="text-xs text-zinc-500 mt-0.5">Test your knowledge with AI-calibrated quizzes. Reach 70% readiness to unlock.</p>
       </div>
@@ -294,7 +330,7 @@ export function MasteryRaids() {
         <div className="text-center py-16">
           <Swords className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
           <p className="text-zinc-400 font-medium">No subjects available</p>
-          <p className="text-[11px] text-zinc-600 mt-1">Upload documents and study them to unlock raids</p>
+          <p className="text-[11px] text-zinc-600 mt-1">Upload documents and study them to unlock challenges</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

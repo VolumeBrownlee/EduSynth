@@ -149,7 +149,7 @@ export function NeuralLab() {
             </div>
             <p className="text-zinc-100 font-medium mb-2 text-lg">Welcome to the Neural Lab</p>
             <p className="text-sm text-zinc-400 mb-6 max-w-md mx-auto leading-relaxed">
-              Select a course and document to enter the immersive learning environment with the Secure PDF Viewer and Socratic AI Tutor.
+              Select a course and document to enter the immersive learning environment with the Secure PDF Viewer and AI Tutor.
             </p>
             <Button
               onClick={() => setCurrentView('course-sector')}
@@ -213,7 +213,7 @@ export function NeuralLab() {
 
           <Badge variant="outline" className="text-[9px] border-[#2DD4BF]/30 text-[#2DD4BF] bg-[#2DD4BF]/5 px-2 hidden sm:flex">
             <Shield className="w-3 h-3 mr-1" />
-            Secure Vault
+            Protected
           </Badge>
           <Badge variant="outline" className="text-[9px] border-[#F59E0B]/30 text-[#F59E0B] bg-[#F59E0B]/5 px-2 hidden sm:flex">
             <Lock className="w-3 h-3 mr-1" />

@@ -27,7 +27,7 @@ const steps = [
     accent: '#2DD4BF',
     gradient: 'from-[#2DD4BF]/20 to-[#06B6D4]/10',
     features: [
-      { icon: Sparkles, text: 'AI-Powered Socratic Tutoring' },
+      { icon: Sparkles, text: 'AI-Powered Study Tutoring' },
       { icon: BookOpen, text: 'Interactive Course Modules' },
       { icon: Target, text: 'Real-time Progress Tracking' },
     ],
@@ -51,7 +51,7 @@ const steps = [
     icon: Rocket,
     title: 'Start Exploring',
     subtitle: 'Choose your first adventure',
-    description: 'Jump right in! Browse your enrolled courses, test your knowledge with a Mastery Raid, or dive into the Neural Lab for AI-powered study sessions.',
+    description: 'Jump right in! Browse your enrolled courses, test your knowledge with a Challenge, or dive into the Neural Lab for AI-powered study sessions.',
     accent: '#8B5CF6',
     gradient: 'from-[#8B5CF6]/20 to-[#A78BFA]/10',
     features: [],
@@ -165,7 +165,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
                     {[
                       { icon: BookOpen, label: 'Courses', color: '#2DD4BF' },
-                      { icon: Swords, label: 'Start Raid', color: '#F59E0B' },
+                      { icon: Swords, label: 'Challenges', color: '#F59E0B' },
                       { icon: Brain, label: 'Neural Lab', color: '#8B5CF6' },
                     ].map((action, i) => {
                       const ActionIcon = action.icon;

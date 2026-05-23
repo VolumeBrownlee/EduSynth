@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { authApi } from '@/services/api';
 import { useState } from 'react';
 
 interface ProfileSettingsProps {
@@ -28,11 +30,33 @@ interface ProfileSettingsProps {
 }
 
 export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
-  const { profile, isZenMode, toggleZenMode, studyProgress, classrooms, setProfile } = useEduSynthStore();
+  const { profile, isZenMode, toggleZenMode, studyProgress, classrooms, setProfile, addToast } = useEduSynthStore();
   const { theme, setTheme } = useNextTheme();
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security'>('profile');
+  const [handleInput, setHandleInput] = useState(profile?.study_handle || '');
+  const [savingHandle, setSavingHandle] = useState(false);
+  const [handleMsg, setHandleMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   if (!profile) return null;
+
+  const saveHandle = async () => {
+    const trimmed = handleInput.trim();
+    if (!trimmed || trimmed === profile.study_handle) { setHandleMsg(null); return; }
+    setSavingHandle(true);
+    setHandleMsg(null);
+    try {
+      const res = await authApi.updateStudyHandle(trimmed) as any;
+      const saved = res?.data?.studyHandle ?? trimmed;
+      setProfile({ ...profile, study_handle: saved });
+      setHandleInput(saved);
+      setHandleMsg({ type: 'ok', text: 'Study handle updated' });
+      addToast({ type: 'success', title: 'Study Handle Updated', message: `You'll appear as "${saved}" on leaderboards.` });
+    } catch (err: any) {
+      setHandleMsg({ type: 'err', text: err?.response?.data?.message || 'Could not update study handle' });
+    } finally {
+      setSavingHandle(false);
+    }
+  };
 
   const completedModules = studyProgress.filter((p) => p.ready_score >= 70).length;
   const avgScore = studyProgress.length > 0
@@ -111,6 +135,35 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                     </div>
                   </div>
 
+                  {/* Study Handle — private leaderboard alias */}
+                  <div className="p-3 rounded-xl bg-muted/20 border border-border">
+                    <p className="text-xs font-medium text-foreground mb-0.5">Study Handle</p>
+                    <p className="text-[9px] text-muted-foreground mb-2">
+                      Your private name on the leaderboard. Classmates won't see your real name.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={handleInput}
+                        onChange={(e) => setHandleInput(e.target.value)}
+                        maxLength={24}
+                        placeholder="e.g., SwiftFalcon"
+                        className="h-8 text-xs"
+                      />
+                      <Button
+                        onClick={saveHandle}
+                        disabled={savingHandle || !handleInput.trim() || handleInput.trim() === profile.study_handle}
+                        className="h-8 text-[10px] px-3 shrink-0 bg-[#2DD4BF]/10 text-[#2DD4BF] border border-[#2DD4BF]/20 hover:bg-[#2DD4BF]/20"
+                      >
+                        {savingHandle ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
+                    {handleMsg && (
+                      <p className={`text-[9px] mt-1.5 ${handleMsg.type === 'ok' ? 'text-[#2DD4BF]' : 'text-[#EF4444]'}`}>
+                        {handleMsg.text}
+                      </p>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { label: 'XP Points', value: profile.xp_points.toLocaleString(), icon: Zap, color: '#2DD4BF' },
@@ -139,7 +192,7 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                         <div>
                           <p className="text-xs font-medium text-foreground">Role</p>
                           <p className="text-[9px] text-muted-foreground">
-                            {profile.role === 'lecturer' ? 'Full access: Analytics + Ingestion' : 'Study Lab & Mastery Raids only'}
+                            {profile.role === 'lecturer' ? 'Full access: Analytics + Ingestion' : 'Study Lab & Challenges only'}
                           </p>
                         </div>
                       </div>
@@ -260,7 +313,7 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                   <div className="p-3 rounded-xl bg-[#2DD4BF]/5 border border-[#2DD4BF]/10">
                     <div className="flex items-center gap-2.5 mb-2">
                       <Shield className="w-4 h-4 text-[#2DD4BF]" />
-                      <p className="text-xs font-medium text-[#2DD4BF]">Secure Document Vault</p>
+                      <p className="text-xs font-medium text-[#2DD4BF]">Protected Document Access</p>
                     </div>
                     <div className="space-y-1.5 text-[10px]">
                       {[
@@ -289,7 +342,7 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <div className="w-1 h-1 rounded-full bg-[#8B5CF6]" />
-                        <span>{profile.role === 'lecturer' ? 'Analytics dashboard available' : 'Study Lab & Mastery Raids only'}</span>
+                        <span>{profile.role === 'lecturer' ? 'Analytics dashboard available' : 'Study Lab & Challenges only'}</span>
                       </div>
                     </div>
                   </div>

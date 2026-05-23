@@ -160,11 +160,11 @@ function buildWeeklyData(totalMessages: number, totalQuizzes: number) {
 }
 
 export function CommandCenter() {
-  const { profile, classrooms, studyProgress, chatSessions, setCurrentView, setSelectedClassroom, isLoading } = useEduSynthStore();
+  const { profile, classrooms, studyProgress, chatSessions, quizzesTaken, setCurrentView, setSelectedClassroom, isLoading } = useEduSynthStore();
 
   const totalMessages = studyProgress.reduce((s, p) => s + p.queries_count, 0);
   const totalTime = studyProgress.reduce((s, p) => s + p.time_spent_minutes, 0);
-  const totalQuizzes = parseInt(localStorage.getItem('edu_total_quizzes') || '0', 10);
+  const totalQuizzes = quizzesTaken;
   const weeklyData = useMemo(() => buildWeeklyData(totalMessages, totalQuizzes), [totalMessages, totalQuizzes]);
 
   const focusModule = useMemo(() => {
@@ -259,7 +259,7 @@ export function CommandCenter() {
                 <BookOpen className="w-4 h-4 mr-2" /> Courses <ArrowUpRight className="w-3 h-3 ml-1 opacity-50" />
               </Button>
               <Button onClick={() => setCurrentView('mastery-raids')} className="flex-1 md:flex-none bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20 h-9 shadow-sm shadow-[#F59E0B]/10">
-                <Swords className="w-4 h-4 mr-2" /> Raids <ArrowUpRight className="w-3 h-3 ml-1 opacity-50" />
+                <Swords className="w-4 h-4 mr-2" /> Challenges <ArrowUpRight className="w-3 h-3 ml-1 opacity-50" />
               </Button>
             </div>
           </div>
@@ -409,7 +409,7 @@ export function CommandCenter() {
                 </div>
               </div>
               <p className="mt-3 text-[11px] text-center font-medium">
-                {avgReadyScore >= 70 ? <span className="text-[#2DD4BF]">✓ Ready for Mastery Raids</span> : <span className="text-zinc-500">Study more to unlock raids</span>}
+                {avgReadyScore >= 70 ? <span className="text-[#2DD4BF]">✓ Ready for Challenges</span> : <span className="text-zinc-500">Study more to unlock challenges</span>}
               </p>
             </CardContent>
           </Card>
@@ -468,7 +468,7 @@ export function CommandCenter() {
             </CardHeader>
             <CardContent className="space-y-2">
               {[
-                { icon: MessageSquare, color: '#2DD4BF', label: 'Total AI Interactions', sub: 'Socratic queries', value: totalMessages },
+                { icon: MessageSquare, color: '#2DD4BF', label: 'Total AI Interactions', sub: 'AI tutor questions', value: totalMessages },
                 { icon: Clock, color: '#F59E0B', label: 'Study Time', sub: 'Total invested', value: `${Math.round(totalTime / 60)}h ${totalTime % 60}m` },
                 { icon: Trophy, color: '#8B5CF6', label: 'Completion Rate', sub: 'Subjects at 70%+ Ready', value: `${studyProgress.length > 0 ? Math.round((studyProgress.filter((p) => p.ready_score >= 70).length / studyProgress.length) * 100) : 0}%` },
               ].map((item, i) => (

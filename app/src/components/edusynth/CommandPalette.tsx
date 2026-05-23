@@ -5,10 +5,10 @@ import type { ViewMode } from '@/store/edusynth-store';
 import { useState, useEffect, useRef } from 'react';
 
 const COMMANDS: { id: ViewMode; label: string; desc: string; icon: React.ElementType; shortcut: string }[] = [
-  { id: 'command-center', label: 'Command Center', desc: 'Your personal dashboard', icon: LayoutDashboard, shortcut: '⌘1' },
-  { id: 'course-sector', label: 'Course Sector', desc: 'Browse and study courses', icon: BookOpen, shortcut: '⌘2' },
-  { id: 'neural-lab', label: 'Neural Lab', desc: 'AI-powered Socratic tutor', icon: Brain, shortcut: '⌘3' },
-  { id: 'mastery-raids', label: 'Mastery Raids', desc: 'Test your knowledge', icon: Swords, shortcut: '⌘4' },
+  { id: 'command-center', label: 'Dashboard', desc: 'Your personal dashboard', icon: LayoutDashboard, shortcut: '⌘1' },
+  { id: 'course-sector', label: 'Courses', desc: 'Browse and study courses', icon: BookOpen, shortcut: '⌘2' },
+  { id: 'neural-lab', label: 'Neural Lab', desc: 'AI-powered study tutor', icon: Brain, shortcut: '⌘3' },
+  { id: 'mastery-raids', label: 'Challenges', desc: 'Test your knowledge', icon: Swords, shortcut: '⌘4' },
   { id: 'analytics', label: 'Analytics', desc: 'Performance insights', icon: BarChart3, shortcut: '⌘5' },
   { id: 'achievements', label: 'Achievements', desc: 'Your badges and rewards', icon: Award, shortcut: '⌘6' },
   { id: 'leaderboard', label: 'Leaderboard', desc: 'See your ranking', icon: Trophy, shortcut: '⌘7' },

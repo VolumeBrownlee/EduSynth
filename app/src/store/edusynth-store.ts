@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import { authApi, documentsApi, chatApi, analyticsApi } from '@/services/api';
+import { authApi, documentsApi, chatApi, analyticsApi, quizApi } from '@/services/api';
 
 export type ViewMode = 'command-center' | 'course-sector' | 'neural-lab' | 'mastery-raids' | 'analytics' | 'achievements' | 'leaderboard';
 
 export interface Profile {
   id: string;
   full_name: string;
+  study_handle: string;
   email: string;
   role: string;
   xp_points: number;
@@ -194,11 +195,71 @@ export function buildAchievements(profile: Profile, progress: StudyProgressItem[
     { id: 'a6', title: 'Scholar', description: 'Master 3 modules', icon: '📚', category: 'mastery', unlocked: masteredCount >= 3, progress: Math.min(masteredCount, 3), maxProgress: 3, xpReward: 300 },
     { id: 'a7', title: 'Sage', description: 'Master 10 modules', icon: '🎓', category: 'mastery', unlocked: masteredCount >= 10, progress: Math.min(masteredCount, 10), maxProgress: 10, xpReward: 1000 },
     { id: 'a8', title: 'Night Owl', description: 'Study for 10 hours total', icon: '🦉', category: 'special', unlocked: totalTime >= 600, progress: Math.min(totalTime, 600), maxProgress: 600, xpReward: 250 },
-    { id: 'a9', title: 'Raid Ready', description: 'Reach 70% Ready-Score on any module', icon: '⚔️', category: 'mastery', unlocked: progress.some((p) => p.ready_score >= 70), progress: progress.some((p) => p.ready_score >= 70) ? 1 : 0, maxProgress: 1, xpReward: 200 },
+    { id: 'a9', title: 'Challenge Ready', description: 'Reach 70% Ready-Score on any module', icon: '⚔️', category: 'mastery', unlocked: progress.some((p) => p.ready_score >= 70), progress: progress.some((p) => p.ready_score >= 70) ? 1 : 0, maxProgress: 1, xpReward: 200 },
     { id: 'a10', title: 'XP Hunter', description: 'Earn 5,000 XP', icon: '💎', category: 'special', unlocked: profile.xp_points >= 5000, progress: Math.min(profile.xp_points, 5000), maxProgress: 5000, xpReward: 500 },
     { id: 'a11', title: 'Perfectionist', description: 'Score 90%+ on any module quiz', icon: '🏆', category: 'mastery', unlocked: progress.some((p) => p.quiz_avg >= 90), progress: progress.some((p) => p.quiz_avg >= 90) ? 1 : 0, maxProgress: 1, xpReward: 400 },
     { id: 'a12', title: 'Renaissance', description: 'Study across 3 different courses', icon: '🌟', category: 'social', unlocked: new Set(progress.map((p) => p.classroom_id)).size >= 3, progress: Math.min(new Set(progress.map((p) => p.classroom_id)).size, 3), maxProgress: 3, xpReward: 350 },
   ];
+}
+
+/**
+ * Build the per-module study-progress list from the backend analytics payload
+ * and the user's AI Tutor chat sessions.
+ *
+ * The backend tracks quiz performance per subject and per topic (module name);
+ * the AI Tutor chat sessions carry the engagement signal. The frontend owns the
+ * synthetic classroom/module IDs, so the mapping happens here.
+ *
+ * Readiness follows the product formula: quiz average (60%) + interaction
+ * depth (40%). A module is included if it has either quiz data or chat activity.
+ */
+export function buildStudyProgress(
+  classrooms: Classroom[],
+  analyticsRaw: any,
+  userId: string,
+  chatSessions: ChatSessionInfo[] = [],
+): StudyProgressItem[] {
+  const subjectPerf: Record<string, any> = analyticsRaw?.subjectPerformance || {};
+  const topicPerf: Record<string, any> = analyticsRaw?.topicPerformance || {};
+  const items: StudyProgressItem[] = [];
+
+  classrooms.forEach((c) => {
+    const subj = subjectPerf[c.subject || c.name];
+    (c.modules || []).forEach((m) => {
+      const topic = topicPerf[m.name];
+
+      // AI Tutor questions for this module — sessions are keyed to the
+      // module's document (module id is `mod-<documentId>`). messageCount
+      // counts both sides of the exchange, so the student's questions are
+      // roughly half.
+      const queries = chatSessions
+        .filter((s) => s.documentId && `mod-${s.documentId}` === m.id)
+        .reduce((sum, s) => sum + Math.ceil((s.messageCount || 0) / 2), 0);
+      const interactionDepth = Math.min(10, Math.round(queries / 2));
+
+      const hasQuizData = !!(topic || subj);
+      if (!hasQuizData && queries === 0) return; // nothing to show for this module yet
+
+      const quizAvg = Math.round(topic ? (topic.averageScore || 0) : (subj?.averageScore || 0));
+      // Readiness = 60% quiz performance + 40% engagement (interaction depth)
+      const readyScore = Math.round(quizAvg * 0.6 + Math.min(100, interactionDepth * 10) * 0.4);
+
+      items.push({
+        id: `sp-${m.id}`,
+        user_id: userId,
+        classroom_id: c.id,
+        module_id: m.id,
+        ready_score: readyScore,
+        interaction_depth: interactionDepth,
+        queries_count: queries,
+        quiz_avg: quizAvg,
+        time_spent_minutes: 0,
+        last_active: new Date().toISOString(),
+      });
+    });
+  });
+
+  return items;
 }
 
 interface EduSynthState {
@@ -274,7 +335,17 @@ interface EduSynthState {
   triggerXpAnimation: (amount: number, x: number, y: number) => void;
   clearXpAnimation: (id: string) => void;
   awardXP: (amount: number) => void;
-  recordQuizResult: (correct: number, total: number, classroomId?: string) => void;
+  quizzesTaken: number;
+  submitQuizResult: (params: {
+    subject: string;
+    topic?: string;
+    difficulty?: string;
+    correctAnswers: number;
+    totalQuestions: number;
+    classroomId?: string;
+    quizTitle?: string;
+  }) => Promise<void>;
+  syncProgress: () => Promise<void>;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   initializeData: () => Promise<void>;
@@ -336,7 +407,7 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
       const raw = res?.leaderboard ?? res?.data?.leaderboard ?? [];
       const entries: LeaderboardEntry[] = raw.map((e: any) => ({
         id: e.userId || e._id || e.id,
-        name: e.fullName || e.name || 'Unknown',
+        name: e.studyHandle || e.name || 'Scholar',
         xp: e.xpPoints || e.xp || 0,
         streak: e.streakCount || e.streak || 0,
         title: e.currentTitle || e.title || '',
@@ -420,15 +491,98 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
     const newXp = state.profile.xp_points + amount;
     return { profile: { ...state.profile, xp_points: newXp, current_title: getTitleForXp(newXp) } };
   }),
-  recordQuizResult: (correct, total, classroomId) => {
+  quizzesTaken: 0,
+
+  /**
+   * Submit a completed quiz or challenge to the backend, then re-sync every
+   * dependent view (XP, readiness, leaderboard, achievements) so progress is
+   * reflected immediately and survives a refresh.
+   */
+  submitQuizResult: async (params) => {
+    const total = Math.max(1, params.totalQuestions);
+    const correct = Math.max(0, Math.min(params.correctAnswers, total));
     const pct = Math.round((correct / total) * 100);
-    const xpEarned = Math.round(pct * 0.5);
-    get().awardXP(xpEarned);
-    get().addToast({ type: pct >= 70 ? 'success' : 'warning', title: pct >= 70 ? 'Raid Complete!' : 'Keep Training', message: `Score: ${pct}% — +${xpEarned} XP` });
-    if (classroomId) {
-      get().addRaidHistory({ id: Date.now().toString(), raidTitle: `Raid — ${new Date().toLocaleDateString()}`, score: pct, passed: pct >= 70, date: new Date().toISOString(), difficulty: pct >= 90 ? 'advanced' : pct >= 70 ? 'intermediate' : 'beginner' });
+
+    try {
+      const res = await quizApi.submit({
+        quizId: `quiz-${Date.now()}`,
+        quizTitle: params.quizTitle || `${params.topic || params.subject} Quiz`,
+        subject: params.subject,
+        topic: params.topic,
+        difficulty: params.difficulty || 'intermediate',
+        totalQuestions: total,
+        correctAnswers: correct,
+      }) as any;
+
+      const xpEarned = res?.data?.xpEarned ?? Math.round(pct * 0.5);
+      get().addToast({
+        type: pct >= 70 ? 'success' : 'warning',
+        title: pct >= 70 ? 'Challenge Complete!' : 'Keep Training',
+        message: `Score: ${pct}% — +${xpEarned} XP`,
+      });
+      if (params.classroomId) {
+        get().addRaidHistory({
+          id: Date.now().toString(),
+          raidTitle: `Challenge — ${new Date().toLocaleDateString()}`,
+          score: pct,
+          passed: pct >= 70,
+          date: new Date().toISOString(),
+          difficulty: pct >= 90 ? 'advanced' : pct >= 70 ? 'intermediate' : 'beginner',
+        });
+      }
+
+      // Pull the authoritative state back from the server
+      await get().syncProgress();
+    } catch (err) {
+      console.warn('Quiz submission failed:', err);
+      // Keep the session usable, but be honest that it did not persist
+      get().awardXP(Math.round(pct * 0.5));
+      get().addToast({
+        type: 'warning',
+        title: 'Saved on this device only',
+        message: `Score ${pct}% recorded locally — could not reach the server.`,
+      });
     }
   },
+
+  /**
+   * Re-fetch profile + analytics from the server and rebuild every derived
+   * piece of state (study progress, achievements, leaderboard).
+   */
+  syncProgress: async () => {
+    try {
+      const meRes = await authApi.getMe() as any;
+      const u = meRes?.data?.user ?? meRes?.user ?? meRes;
+      set((s) => s.profile ? {
+        profile: {
+          ...s.profile,
+          xp_points: u.xpPoints ?? s.profile.xp_points,
+          streak_count: u.streakCount ?? s.profile.streak_count,
+          current_title: u.currentTitle || getTitleForXp(u.xpPoints ?? s.profile.xp_points),
+        },
+      } : {});
+    } catch (e) {
+      console.warn('Profile re-sync failed:', e);
+    }
+
+    // Refresh chat sessions too, then rebuild progress from quizzes + engagement
+    try { await get().refreshChatSessions(); } catch { /* keep existing */ }
+
+    try {
+      const aRes = await analyticsApi.getMyAnalytics() as any;
+      const raw = aRes?.data ?? aRes?.analytics ?? aRes;
+      const sp = buildStudyProgress(get().classrooms, raw, get().profile?.id || '', get().chatSessions);
+      set({ studyProgress: sp, quizzesTaken: raw?.totalQuizzesTaken ?? get().quizzesTaken });
+    } catch (e) {
+      console.warn('Analytics re-sync failed:', e);
+    }
+
+    const { profile, studyProgress } = get();
+    if (profile) set({ achievements: buildAchievements(profile, studyProgress) });
+
+    try { await get().refreshLeaderboard(); } catch { /* keep existing */ }
+  },
+
   isLoading: true,
   setIsLoading: (loading) => set({ isLoading: loading }),
 
@@ -441,6 +595,7 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
       const profile: Profile = {
         id: u._id || u.id || '',
         full_name: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+        study_handle: u.studyHandle || '',
         email: u.email || '',
         role: u.role || 'student',
         xp_points: u.xpPoints || 0,
@@ -503,34 +658,20 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
         console.warn('Docs fetch failed:', e);
       }
 
-      // Analytics / study progress
+      // Chat sessions — loaded before analytics so AI Tutor engagement can
+      // feed into the readiness calculation.
+      try { await get().refreshChatSessions(); } catch {}
+
+      // Analytics / study progress — built from the backend's quiz performance
+      // and the AI Tutor chat sessions, mapped onto the synthetic classrooms.
       try {
         const aRes = await analyticsApi.getMyAnalytics() as any;
-        const raw = aRes?.analytics ?? aRes?.data ?? aRes;
-        if (raw?.studyProgress?.length) {
-          const sp: StudyProgressItem[] = raw.studyProgress.map((p: any) => ({
-            id: p._id || p.id,
-            user_id: profile.id,
-            classroom_id: p.knowledgeBaseId || p.classroom_id || '',
-            module_id: p.documentId || p.module_id || '',
-            ready_score: p.readyScore ?? p.ready_score ?? 0,
-            interaction_depth: p.interactionDepth ?? p.interaction_depth ?? 0,
-            queries_count: p.queriesCount ?? p.queries_count ?? 0,
-            quiz_avg: p.quizAvg ?? p.quiz_avg ?? 0,
-            time_spent_minutes: p.timeSpentMinutes ?? p.time_spent_minutes ?? 0,
-            last_active: p.lastActive || p.last_active || new Date().toISOString(),
-          }));
-          set({ studyProgress: sp });
-          if (raw.xpPoints != null) {
-            set((s) => s.profile ? { profile: { ...s.profile, xp_points: raw.xpPoints, streak_count: raw.streakCount || s.profile.streak_count, current_title: getTitleForXp(raw.xpPoints) } } : {});
-          }
-        }
+        const raw = aRes?.data ?? aRes?.analytics ?? aRes;
+        const sp = buildStudyProgress(get().classrooms, raw, profile.id, get().chatSessions);
+        set({ studyProgress: sp, quizzesTaken: raw?.totalQuizzesTaken ?? 0 });
       } catch (e) {
         console.warn('Analytics fetch failed:', e);
       }
-
-      // Chat sessions
-      try { await get().refreshChatSessions(); } catch {}
 
       // Leaderboard
       try { await get().refreshLeaderboard(); } catch {}
@@ -555,6 +696,7 @@ export const useEduSynthStore = create<EduSynthState>((set, get) => ({
     documents: [],
     selectedDocument: null,
     studyProgress: [],
+    quizzesTaken: 0,
     chatMessages: [],
     chatSessions: [],
     activeSessionId: null,

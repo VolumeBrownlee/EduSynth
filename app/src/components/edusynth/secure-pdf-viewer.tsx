@@ -154,7 +154,7 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
       <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F59E0B]/5 border-b border-[#F59E0B]/10 shrink-0">
         <Shield className="w-3 h-3 text-[#F59E0B] shrink-0" />
         <span className="text-[10px] text-[#F59E0B]/80 truncate">
-          Secure Vault — Right-click, Save, and Print disabled. Watermark: {profile?.full_name} — {profile?.id?.slice(0, 8).toUpperCase()}
+          Protected Document — Right-click, Save, and Print disabled. Watermark: {profile?.full_name} — {profile?.id?.slice(0, 8).toUpperCase()}
         </span>
         <div className="flex items-center gap-1 ml-auto shrink-0">
           <Ban className="w-2.5 h-2.5 text-[#F59E0B]/40" />

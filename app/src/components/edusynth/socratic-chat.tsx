@@ -68,6 +68,7 @@ export function SocraticChat({ onPageRef }: SocraticChatProps) {
     profile,
     activeSessionId,
     setActiveSessionId,
+    syncProgress,
   } = useEduSynthStore();
 
   const [input, setInput] = useState('');
@@ -109,6 +110,8 @@ export function SocraticChat({ onPageRef }: SocraticChatProps) {
         "I couldn't generate a response. Please try again.";
 
       addChatMessage({ id: (Date.now() + 1).toString(), role: 'assistant', content, created_at: new Date().toISOString() });
+      // Reflect the new AI Tutor activity in dashboard readiness/analytics
+      syncProgress();
     } catch {
       addChatMessage({
         id: (Date.now() + 1).toString(),
@@ -119,7 +122,7 @@ export function SocraticChat({ onPageRef }: SocraticChatProps) {
     } finally {
       setChatLoading(false);
     }
-  }, [input, isChatLoading, addChatMessage, setChatLoading, selectedDocument, activeSessionId, setActiveSessionId]);
+  }, [input, isChatLoading, addChatMessage, setChatLoading, selectedDocument, activeSessionId, setActiveSessionId, syncProgress]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -138,7 +141,7 @@ export function SocraticChat({ onPageRef }: SocraticChatProps) {
               <Sparkles className="w-4 h-4 text-[#2DD4BF]" />
             </div>
             <div>
-              <CardTitle className="text-sm text-zinc-200">Socratic Tutor</CardTitle>
+              <CardTitle className="text-sm text-zinc-200">AI Tutor</CardTitle>
               <p className="text-[9px] text-zinc-600 mt-0.5">
                 {selectedModule ? selectedModule.name : 'Select a module to begin'}
                 {selectedDocument ? ` • ${selectedDocument.title}` : ''}
@@ -170,7 +173,7 @@ export function SocraticChat({ onPageRef }: SocraticChatProps) {
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2DD4BF]/20 to-[#06B6D4]/10 flex items-center justify-center mb-4 border border-[#2DD4BF]/20 shadow-lg shadow-[#2DD4BF]/10">
                 <Bot className="w-7 h-7 text-[#2DD4BF]" />
               </div>
-              <p className="text-sm text-zinc-300 font-semibold">Socratic Tutor Ready</p>
+              <p className="text-sm text-zinc-300 font-semibold">AI Tutor Ready</p>
               <p className="text-xs text-zinc-500 mt-1.5 max-w-[220px] leading-relaxed">
                 Ask questions about your course material. I'll guide you toward understanding through inquiry.
               </p>

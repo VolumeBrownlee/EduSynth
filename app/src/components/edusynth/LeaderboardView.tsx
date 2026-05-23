@@ -35,11 +35,11 @@ export function LeaderboardView() {
             <RankBadge rank={myRank} />
             <Avatar className="h-9 w-9 border border-[#2DD4BF]/30">
               <AvatarFallback className="bg-[#2DD4BF]/10 text-[#2DD4BF] text-xs font-bold">
-                {profile?.full_name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                {(profile?.study_handle || 'S').slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-zinc-100">{profile?.full_name} <Badge className="bg-[#2DD4BF]/10 text-[#2DD4BF] border-[#2DD4BF]/20 text-[9px] ml-1">You</Badge></p>
+              <p className="text-sm font-semibold text-zinc-100">{profile?.study_handle || 'You'} <Badge className="bg-[#2DD4BF]/10 text-[#2DD4BF] border-[#2DD4BF]/20 text-[9px] ml-1">You</Badge></p>
               <p className="text-[10px] text-zinc-500">{profile?.current_title}</p>
             </div>
             <div className="flex items-center gap-1.5 text-xs">
@@ -75,7 +75,7 @@ export function LeaderboardView() {
                   <RankBadge rank={i + 1} />
                   <Avatar className="h-8 w-8 border border-zinc-700/50">
                     <AvatarFallback className="text-[10px] font-bold bg-zinc-800 text-zinc-400">
-                      {entry.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                      {entry.name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">

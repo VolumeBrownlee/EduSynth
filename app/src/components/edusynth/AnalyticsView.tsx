@@ -70,7 +70,7 @@ export function AnalyticsView() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Avg. Readiness', value: `${avgScore}%`, color: '#2DD4BF', icon: Target, trend: avgScore >= 70 ? '↑ Raid Ready' : '→ Keep going' },
+          { label: 'Avg. Readiness', value: `${avgScore}%`, color: '#2DD4BF', icon: Target, trend: avgScore >= 70 ? '↑ Challenge Ready' : '→ Keep going' },
           { label: 'Subjects Mastered', value: `${mastered}/${classrooms.length}`, color: '#F59E0B', icon: Award, trend: `${classrooms.length > 0 ? Math.round(mastered / classrooms.length * 100) : 0}%` },
           { label: 'Total Queries', value: totalQueries.toLocaleString(), color: '#8B5CF6', icon: Brain, trend: 'Interactions' },
           { label: 'Leaderboard Rank', value: myRank > 0 ? `#${myRank}` : 'N/A', color: '#EC4899', icon: TrendingUp, trend: 'Global rank' },
@@ -101,7 +101,7 @@ export function AnalyticsView() {
           <CardContent className="flex flex-col items-center pb-5">
             <ReadyScoreGauge score={avgScore} size={180} />
             <p className="text-xs text-center mt-3 text-zinc-500">
-              {avgScore >= 70 ? '✓ You\'re raid-ready across subjects!' : `${70 - avgScore}% more needed for raid access`}
+              {avgScore >= 70 ? '✓ You\'re challenge-ready across subjects!' : `${70 - avgScore}% more needed for challenge access`}
             </p>
           </CardContent>
         </Card>

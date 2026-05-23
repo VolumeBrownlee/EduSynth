@@ -50,13 +50,17 @@ export const authApi = {
     lastName: string;
     registrationId: string;
     tenantCode: string;
+    studyHandle?: string;
     role?: string;
   }) => api.post('/auth/register', data),
-  
+
   getMe: () => api.get('/auth/me'),
-  
+
   refreshToken: () => api.post('/auth/refresh'),
-  
+
+  updateStudyHandle: (studyHandle: string) =>
+    api.put('/auth/study-handle', { studyHandle }),
+
   logout: () => api.post('/auth/logout')
 };
 
