@@ -24,8 +24,8 @@ const steps = [
     title: 'Welcome to EduSynth',
     subtitle: 'Your AI-powered learning platform',
     description: 'EduSynth uses Socratic AI to guide your learning journey. Ask questions, explore concepts deeply, and build real understanding — not just memorize answers.',
-    accent: '#2DD4BF',
-    gradient: 'from-[#2DD4BF]/20 to-[#06B6D4]/10',
+    accent: 'hsl(var(--primary))',
+    gradient: 'from-primary/20 to-info/10',
     features: [
       { icon: Sparkles, text: 'AI-Powered Study Tutoring' },
       { icon: BookOpen, text: 'Interactive Course Modules' },
@@ -38,8 +38,8 @@ const steps = [
     title: 'Your Learning Journey',
     subtitle: 'Master concepts, earn rewards',
     description: 'Track your progress with Ready-Score, earn XP for every interaction, and maintain streaks to prove your dedication.',
-    accent: '#F59E0B',
-    gradient: 'from-[#F59E0B]/20 to-[#FBBF24]/10',
+    accent: 'hsl(var(--accent))',
+    gradient: 'from-accent/20 to-accent/10',
     features: [
       { icon: Target, text: 'Ready-Score = Quiz Avg (60%) + Interaction Depth (40%)' },
       { icon: Zap, text: 'Earn XP from questions, quizzes, and raids' },
@@ -52,8 +52,8 @@ const steps = [
     title: 'Start Exploring',
     subtitle: 'Choose your first adventure',
     description: 'Jump right in! Browse your enrolled courses, test your knowledge with a Challenge, or dive into the Neural Lab for AI-powered study sessions.',
-    accent: '#8B5CF6',
-    gradient: 'from-[#8B5CF6]/20 to-[#A78BFA]/10',
+    accent: 'hsl(var(--lecturer))',
+    gradient: 'from-lecturer/20 to-lecturer/5',
     features: [],
   },
 ];
@@ -106,7 +106,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="w-full max-w-lg"
       >
-        <div className="glass-strong rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/40">
+        <div className="card-elevated rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/40">
           <div
             className="h-1.5"
             style={{
@@ -154,7 +154,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                           <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${step.accent}15` }}>
                             <FeatureIcon className="w-3.5 h-3.5" style={{ color: step.accent }} />
                           </div>
-                          <span className="text-[11px] text-muted-foreground">{feature.text}</span>
+                          <span className="text-xs text-muted-foreground">{feature.text}</span>
                         </motion.div>
                       );
                     })}
@@ -164,9 +164,9 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 {step.id === 'explore' && (
                   <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
                     {[
-                      { icon: BookOpen, label: 'Courses', color: '#2DD4BF' },
-                      { icon: Swords, label: 'Challenges', color: '#F59E0B' },
-                      { icon: Brain, label: 'Neural Lab', color: '#8B5CF6' },
+                      { icon: BookOpen, label: 'Courses', color: 'hsl(var(--primary))' },
+                      { icon: Swords, label: 'Challenges', color: 'hsl(var(--accent))' },
+                      { icon: Brain, label: 'Neural Lab', color: 'hsl(var(--lecturer))' },
                     ].map((action, i) => {
                       const ActionIcon = action.icon;
                       return (
@@ -181,7 +181,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${action.color}15` }}>
                             <ActionIcon className="w-5 h-5" style={{ color: action.color }} />
                           </div>
-                          <span className="text-[10px] text-muted-foreground font-medium">{action.label}</span>
+                          <span className="text-2xs text-muted-foreground font-medium">{action.label}</span>
                         </motion.button>
                       );
                     })}

@@ -34,3 +34,11 @@ Thumbs.db
 REPORT.md
 EDUSYNTH.docx
 
+
+# ───────────── Local-only defence artifacts ─────────────
+# Rendered defence-presentation files carry placeholder personal info
+# (full name, supervisor) and are kept local for the same reason as the
+# REPORT.md / EDUSYNTH.docx — they should never be pushed.
+presentation.html
+EduSynth-Defence.pdf
+

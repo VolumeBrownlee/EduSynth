@@ -42,7 +42,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
       </div>
 
@@ -105,7 +105,7 @@ export default function Login() {
                 className="glass-input"
               />
               <p className="text-xs text-muted-foreground">
-                Optional — use <span className="text-cyan-400 font-mono">EDUSYNTH</span> for the demo
+                Optional — use <span className="text-primary font-mono">EDUSYNTH</span> for the demo
               </p>
             </div>
 
@@ -122,7 +122,7 @@ export default function Login() {
               </div>
               <Link
                 to="/forgot-password"
-                className="text-sm text-cyan-400 hover:text-cyan-300"
+                className="text-sm text-primary hover:text-primary"
               >
                 Forgot password?
               </Link>
@@ -147,7 +147,7 @@ export default function Login() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-medium">
+              <Link to="/register" className="text-primary hover:text-primary font-medium">
                 Sign up
               </Link>
             </p>

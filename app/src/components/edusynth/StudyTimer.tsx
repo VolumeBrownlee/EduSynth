@@ -47,7 +47,7 @@ export function StudyTimer() {
   }, [studyTimerRunning, handleComplete, setStudyTimer]);
 
   const isLow = totalSeconds < 60 && studyTimerRunning;
-  const modeColor = studyTimerMode === 'focus' ? '#2DD4BF' : '#F59E0B';
+  const modeColor = studyTimerMode === 'focus' ? 'hsl(var(--primary))' : 'hsl(var(--accent))';
   const circumference = 2 * Math.PI * 28;
   const strokeDashoffset = circumference - (progressPct / 100) * circumference;
 
@@ -55,7 +55,7 @@ export function StudyTimer() {
     <div className="flex items-center gap-2.5 relative">
       <div className="relative w-14 h-14">
         <svg className="w-14 h-14 -rotate-90" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="3" className="text-slate-200 dark:text-zinc-700" />
+          <circle cx="32" cy="32" r="28" fill="none" stroke="currentColor" strokeWidth="3" className="text-slate-200 dark:text-muted-foreground/60" />
           <motion.circle
             cx="32" cy="32" r="28" fill="none" stroke={modeColor} strokeWidth="3"
             strokeLinecap="round" strokeDasharray={circumference}
@@ -66,7 +66,7 @@ export function StudyTimer() {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`text-[10px] font-bold tabular-nums font-mono`} style={{ color: isLow ? '#EF4444' : modeColor }}>
+          <span className={`text-2xs font-bold tabular-nums font-mono`} style={{ color: isLow ? 'hsl(var(--destructive))' : modeColor }}>
             {String(studyTimerMinutes).padStart(2, '0')}:{String(studyTimerSeconds).padStart(2, '0')}
           </span>
         </div>
@@ -74,26 +74,26 @@ export function StudyTimer() {
 
       <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" onClick={() => setStudyTimer({ studyTimerRunning: !studyTimerRunning })}
-          className={`h-7 w-7 rounded-lg transition-all ${studyTimerRunning ? 'text-[#F59E0B] hover:bg-[#F59E0B]/10' : 'text-[#2DD4BF] hover:bg-[#2DD4BF]/10'}`}
+          className={`h-7 w-7 rounded-lg transition-all ${studyTimerRunning ? 'text-accent hover:bg-accent/10' : 'text-primary hover:bg-primary/10'}`}
         >
           {studyTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
         </Button>
         <Button variant="ghost" size="icon" onClick={() => { if (intervalRef.current) clearInterval(intervalRef.current); setStudyTimer({ studyTimerRunning: false, studyTimerMinutes: studyTimerMode === 'focus' ? 25 : 5, studyTimerSeconds: 0 }); }}
-          className="h-7 w-7 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/50"
+          className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
         >
           <RotateCcw className="w-3 h-3" />
         </Button>
       </div>
 
       {studyTimerSessions > 0 && (
-        <span className="hidden md:inline text-[9px] text-muted-foreground/60">{studyTimerSessions}×</span>
+        <span className="hidden md:inline text-2xs text-muted-foreground/60">{studyTimerSessions}×</span>
       )}
 
       <AnimatePresence>
         {justCompleted && (
           <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} className="absolute -top-2 -right-2">
-            <div className="w-4 h-4 rounded-full bg-[#2DD4BF] flex items-center justify-center">
-              <span className="text-[8px]">✓</span>
+            <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-2xs">✓</span>
             </div>
           </motion.div>
         )}

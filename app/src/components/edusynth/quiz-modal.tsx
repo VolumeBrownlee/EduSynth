@@ -30,7 +30,7 @@ interface QuizQuestion {
 
 /**
  * Normalize Gemini's quiz output into the local shape.
- * The model returns options like ["A. Foo", "B. Bar"] and correctAnswer as "A"
+ * The model returns options like ["A. Foo","B. Bar"] and correctAnswer as"A"
  * (or sometimes a 0-based index). We strip the letter prefix and resolve the
  * correct index regardless of which form we got.
  */
@@ -174,21 +174,21 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
           transition={{ type: 'spring', stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="glass-strong border-zinc-700/50 w-full max-w-md">
+          <Card className="card-elevated border-border w-full max-w-md">
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#2DD4BF]/10 border-2 border-[#2DD4BF]/30 flex items-center justify-center mx-auto mb-4">
-                <Loader2 className="w-8 h-8 text-[#2DD4BF] animate-spin" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
-              <h3 className="text-lg font-bold text-zinc-100 mb-2">Generating Questions...</h3>
-              <p className="text-sm text-zinc-400 mb-1">
+              <h3 className="text-lg font-bold text-foreground mb-2">Generating Questions...</h3>
+              <p className="text-sm text-muted-foreground mb-1">
                 AI is crafting personalized quiz questions for
               </p>
-              <p className="text-sm text-[#2DD4BF] font-semibold">{topic}</p>
+              <p className="text-sm text-primary font-semibold">{topic}</p>
               <div className="mt-4 flex items-center justify-center gap-1">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-[#2DD4BF]"
+                    className="w-2 h-2 rounded-full bg-primary"
                     animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
                     transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                   />
@@ -214,10 +214,10 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
           animate={{ scale: 1, opacity: 1, y: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="glass-strong border-zinc-700/50 w-full max-w-md">
+          <Card className="card-elevated border-border w-full max-w-md">
             <CardContent className="p-7 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-7 h-7 text-[#F59E0B]" />
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-7 h-7 text-accent" />
               </div>
               <h3 className="text-base font-semibold text-foreground mb-2">Couldn't generate quiz</h3>
               <p className="text-xs text-muted-foreground mb-5">
@@ -246,45 +246,45 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
           transition={{ type: 'spring', stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="glass-strong border-zinc-700/50 w-full max-w-md">
+          <Card className="card-elevated border-border w-full max-w-md">
             <CardContent className="p-8 text-center">
               <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 ${
-                score >= 70 ? 'bg-[#2DD4BF]/10 border-2 border-[#2DD4BF]/30' : 'bg-[#F59E0B]/10 border-2 border-[#F59E0B]/30'
+                score >= 70 ? 'bg-primary/10 border-2 border-primary/30' : 'bg-accent/10 border-2 border-accent/30'
               }`}>
                 {score >= 70 ? (
-                  <Trophy className="w-10 h-10 text-[#2DD4BF]" />
+                  <Trophy className="w-10 h-10 text-primary" />
                 ) : (
-                  <Star className="w-10 h-10 text-[#F59E0B]" />
+                  <Star className="w-10 h-10 text-accent" />
                 )}
               </div>
-              <h3 className="text-xl font-bold text-zinc-100 mb-2">
+              <h3 className="text-xl font-bold text-foreground mb-2">
                 {score >= 70 ? 'Excellent Work!' : 'Keep Practicing!'}
               </h3>
-              <p className="text-sm text-zinc-400 mb-6">
-                You scored <span className={`font-bold ${score >= 70 ? 'text-[#2DD4BF]' : 'text-[#F59E0B]'}`}>{score}%</span> on {topic}
+              <p className="text-sm text-muted-foreground mb-6">
+                You scored <span className={`font-bold ${score >= 70 ? 'text-primary' : 'text-accent'}`}>{score}%</span> on {topic}
               </p>
               <div className="flex items-center justify-center gap-4 mb-6">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-[#2DD4BF]">{correctCount}</p>
-                  <p className="text-[10px] text-zinc-500">Correct</p>
+                  <p className="text-2xl font-bold text-primary">{correctCount}</p>
+                  <p className="text-2xs text-muted-foreground">Correct</p>
                 </div>
-                <div className="w-px h-8 bg-zinc-800" />
+                <div className="w-px h-8 bg-muted" />
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-[#EF4444]">{questions.length - correctCount}</p>
-                  <p className="text-[10px] text-zinc-500">Incorrect</p>
+                  <p className="text-2xl font-bold text-destructive">{questions.length - correctCount}</p>
+                  <p className="text-2xs text-muted-foreground">Incorrect</p>
                 </div>
-                <div className="w-px h-8 bg-zinc-800" />
+                <div className="w-px h-8 bg-muted" />
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-zinc-400">{questions.length}</p>
-                  <p className="text-[10px] text-zinc-500">Total</p>
+                  <p className="text-2xl font-bold text-muted-foreground">{questions.length}</p>
+                  <p className="text-2xs text-muted-foreground">Total</p>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleRestart} variant="outline" className="flex-1 border-zinc-700 text-zinc-300">
+                <Button onClick={handleRestart} variant="outline" className="flex-1 border-border text-foreground">
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Retry
                 </Button>
-                <Button onClick={onClose} className="flex-1 bg-[#2DD4BF]/10 text-[#2DD4BF] hover:bg-[#2DD4BF]/20 border border-[#2DD4BF]/20">
+                <Button onClick={onClose} className="flex-1 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
                   Continue
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -309,47 +309,47 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
         transition={{ type: 'spring', stiffness: 300 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <Card className="glass-strong border-zinc-700/50 w-full max-w-lg">
+        <Card className="card-elevated border-border w-full max-w-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#2DD4BF]/10 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-[#2DD4BF]" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-sm text-zinc-200 flex items-center gap-1.5">
+                  <CardTitle className="text-sm text-foreground flex items-center gap-1.5">
                     Knowledge Check
-                    <Badge className="text-[8px] bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/20 px-1 py-0">
+                    <Badge className="text-2xs bg-lecturer/10 text-lecturer border-lecturer/20 px-1 py-0">
                       AI-Generated
                     </Badge>
                   </CardTitle>
-                  <p className="text-[10px] text-zinc-500">{topic}</p>
+                  <p className="text-2xs text-muted-foreground">{topic}</p>
                 </div>
               </div>
-              <Badge className="text-[9px] bg-zinc-800/80 text-zinc-400 border-zinc-700/50">
+              <Badge className="text-2xs bg-muted/80 text-muted-foreground border-border">
                 {currentIndex + 1} / {questions.length}
               </Badge>
             </div>
-            <Progress value={progress} className="h-1.5 mt-2 bg-zinc-800 [&>div]:bg-gradient-to-r [&>div]:from-[#2DD4BF] [&>div]:to-[#06B6D4] [&>div]:rounded-full" />
+            <Progress value={progress} className="h-1.5 mt-2 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-info [&>div]:rounded-full" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <h3 className="text-sm font-medium text-zinc-200 leading-relaxed">
+            <h3 className="text-sm font-medium text-foreground leading-relaxed">
               {currentQuestion.question}
             </h3>
 
             <div className="space-y-2">
               {currentQuestion.options.map((option, i) => {
-                let optionStyle = 'bg-zinc-900/40 border-zinc-800/40 hover:border-zinc-700/50 text-zinc-300 hover:text-zinc-200';
+                let optionStyle = 'bg-muted/40 border-border hover:border-border text-foreground hover:text-foreground';
                 if (showResult) {
                   if (i === currentQuestion.correctIndex) {
-                    optionStyle = 'bg-[#2DD4BF]/10 border-[#2DD4BF]/30 text-[#2DD4BF]';
+                    optionStyle = 'bg-primary/10 border-primary/30 text-primary';
                   } else if (i === selectedAnswer && i !== currentQuestion.correctIndex) {
-                    optionStyle = 'bg-[#EF4444]/10 border-[#EF4444]/30 text-[#EF4444]';
+                    optionStyle = 'bg-destructive/10 border-destructive/30 text-destructive';
                   } else {
-                    optionStyle = 'bg-zinc-900/20 border-zinc-800/20 text-zinc-600';
+                    optionStyle = 'bg-muted/20 border-border/20 text-muted-foreground';
                   }
                 } else if (selectedAnswer === i) {
-                  optionStyle = 'bg-[#2DD4BF]/10 border-[#2DD4BF]/30 text-[#2DD4BF]';
+                  optionStyle = 'bg-primary/10 border-primary/30 text-primary';
                 }
 
                 return (
@@ -362,12 +362,12 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
                     whileTap={!showResult ? { scale: 0.99 } : {}}
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold ${
+                      <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-2xs font-bold ${
                         showResult && i === currentQuestion.correctIndex
-                          ? 'bg-[#2DD4BF]/20 text-[#2DD4BF]'
+                          ? 'bg-primary/20 text-primary'
                           : showResult && i === selectedAnswer && i !== currentQuestion.correctIndex
-                          ? 'bg-[#EF4444]/20 text-[#EF4444]'
-                          : 'bg-zinc-800/50 text-zinc-500'
+                          ? 'bg-destructive/20 text-destructive'
+                          : 'bg-muted text-muted-foreground'
                       }`}>
                         {showResult && i === currentQuestion.correctIndex ? (
                           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -388,7 +388,7 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
             {!showResult && !showHint && (
               <button
                 onClick={() => setShowHint(true)}
-                className="flex items-center gap-1.5 text-[10px] text-zinc-500 hover:text-[#F59E0B] transition-colors"
+                className="flex items-center gap-1.5 text-2xs text-muted-foreground hover:text-accent transition-colors"
               >
                 <Lightbulb className="w-3 h-3" />
                 Show hint
@@ -398,9 +398,9 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="p-3 rounded-lg bg-[#F59E0B]/5 border border-[#F59E0B]/10"
+                className="p-3 rounded-lg bg-accent/5 border border-accent/10"
               >
-                <p className="text-[11px] text-[#F59E0B]/80 flex items-start gap-1.5">
+                <p className="text-xs text-accent/80 flex items-start gap-1.5">
                   <Lightbulb className="w-3 h-3 mt-0.5 shrink-0" />
                   {currentQuestion.hint}
                 </p>
@@ -412,9 +412,9 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="p-3 rounded-lg bg-[#2DD4BF]/5 border border-[#2DD4BF]/10"
+                className="p-3 rounded-lg bg-primary/5 border border-primary/10"
               >
-                <p className="text-[11px] text-[#2DD4BF]/80 flex items-start gap-1.5">
+                <p className="text-xs text-primary/80 flex items-start gap-1.5">
                   <Sparkles className="w-3 h-3 mt-0.5 shrink-0" />
                   {currentQuestion.explanation}
                 </p>
@@ -426,7 +426,7 @@ export function QuizModal({ subject, topic, onClose, onComplete }: QuizModalProp
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <Button
                   onClick={handleNext}
-                  className="w-full bg-[#2DD4BF]/10 text-[#2DD4BF] hover:bg-[#2DD4BF]/20 border border-[#2DD4BF]/20"
+                  className="w-full bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
                 >
                   {currentIndex < questions.length - 1 ? 'Next Question' : 'See Results'}
                   <ArrowRight className="w-4 h-4 ml-2" />

@@ -29,9 +29,9 @@ interface QuizState {
 }
 
 const DIFFICULTY_COLORS = {
-  beginner: { bg: 'bg-[#2DD4BF]/10', text: 'text-[#2DD4BF]', border: 'border-[#2DD4BF]/20' },
-  intermediate: { bg: 'bg-[#F59E0B]/10', text: 'text-[#F59E0B]', border: 'border-[#F59E0B]/20' },
-  advanced: { bg: 'bg-[#EF4444]/10', text: 'text-[#EF4444]', border: 'border-[#EF4444]/20' },
+  beginner: { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+  intermediate: { bg: 'bg-accent/10', text: 'text-accent', border: 'border-accent/20' },
+  advanced: { bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/20' },
 };
 
 type AssessmentMode = 'challenge' | 'sample-exam';
@@ -47,45 +47,45 @@ function RaidCard({ classroom, sp, onStart }: {
   const dc = DIFFICULTY_COLORS[diff] ?? DIFFICULTY_COLORS.beginner;
 
   return (
-    <Card className="glass border-zinc-800/50 card-depth-2 hover:border-[#2DD4BF]/30 card-lift transition-all">
+    <Card className="card-elevated border-border hover:border-primary/30 card-lift transition-all">
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
-          <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center border border-[#F59E0B]/20">
-            <Swords className="w-5 h-5 text-[#F59E0B]" />
+          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center border border-accent/20">
+            <Swords className="w-5 h-5 text-accent" />
           </div>
-          <Badge className={`${dc.bg} ${dc.text} ${dc.border} text-[9px]`}>{diff}</Badge>
+          <Badge className={`${dc.bg} ${dc.text} ${dc.border} text-2xs`}>{diff}</Badge>
         </div>
-        <h3 className="font-semibold text-zinc-100 text-sm mb-0.5">{classroom.name}</h3>
-        <p className="text-[10px] text-zinc-500 mb-3">
+        <h3 className="font-semibold text-foreground text-sm mb-0.5">{classroom.name}</h3>
+        <p className="text-2xs text-muted-foreground mb-3">
           {classroom.documents.length} docs · {recommended ? 'Ready to start' : 'Recommended at 70%+ readiness'}
         </p>
 
         <div className="mb-3">
-          <div className="flex justify-between text-[9px] mb-1">
-            <span className="text-zinc-500">Readiness</span>
-            <span className={recommended ? 'text-[#2DD4BF]' : 'text-zinc-500'}>{score}%</span>
+          <div className="flex justify-between text-2xs mb-1">
+            <span className="text-muted-foreground">Readiness</span>
+            <span className={recommended ? 'text-primary' : 'text-muted-foreground'}>{score}%</span>
           </div>
-          <Progress value={score} className={`h-1.5 ${recommended ? '[&>div]:bg-gradient-to-r [&>div]:from-[#2DD4BF] [&>div]:to-[#06B6D4]' : '[&>div]:bg-zinc-600'}`} />
+          <Progress value={score} className={`h-1.5 ${recommended ? '[&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-info' : '[&>div]:bg-muted-foreground/40'}`} />
         </div>
 
-        <div className="flex items-center gap-2 text-[9px] text-zinc-500 mb-4">
+        <div className="flex items-center gap-2 text-2xs text-muted-foreground mb-4">
           <Clock className="w-3 h-3" /><span>~20 min</span>
           <span>·</span>
           <Target className="w-3 h-3" /><span>10 questions</span>
           <span>·</span>
-          <span className="text-[#F59E0B]/80">Mock exam</span>
+          <span className="text-accent/80">Mock exam</span>
         </div>
 
         <div className="space-y-2">
           <Button
             onClick={() => onStart(classroom, diff, 'challenge')}
-            className="w-full h-8 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20"
+            className="w-full h-8 text-xs bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20"
           >
             <Swords className="w-3.5 h-3.5 mr-1.5" /> Start Challenge
           </Button>
           <Button
             onClick={() => onStart(classroom, diff, 'sample-exam')}
-            className="w-full h-8 text-xs bg-[#8B5CF6]/10 text-[#8B5CF6] hover:bg-[#8B5CF6]/20 border border-[#8B5CF6]/20"
+            className="w-full h-8 text-xs bg-lecturer/10 text-lecturer hover:bg-lecturer/20 border border-lecturer/20"
             title="A sample exam paper modelled on your lecturer's past papers"
           >
             <FileText className="w-3.5 h-3.5 mr-1.5" /> Sample Exam Paper
@@ -150,7 +150,7 @@ export function MasteryRaids() {
       const data = (res as any)?.data;
       const questions: QuizQuestion[] = (data?.questions ?? [])
         .map((q: any) => {
-          // Normalise Gemini output: strip "A. " prefixes and resolve the
+          // Normalise Gemini output: strip"A." prefixes and resolve the
           // correct answer whether it arrives as a letter or an index.
           const rawOpts: string[] = Array.isArray(q.options) ? q.options : [];
           const options = rawOpts
@@ -222,8 +222,8 @@ export function MasteryRaids() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 text-[#2DD4BF] animate-spin mx-auto mb-3" />
-          <p className="text-sm text-zinc-400">
+          <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">
             {activeMode === 'sample-exam'
               ? 'Building your sample exam paper from past papers...'
               : 'Generating your challenge...'}
@@ -241,36 +241,36 @@ export function MasteryRaids() {
 
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-4 md:p-6 max-w-lg mx-auto">
-        <Card className="glass border-zinc-800/50 card-depth-2 overflow-hidden">
-          <div className={`h-1 ${passed ? 'bg-gradient-to-r from-[#2DD4BF] to-[#06B6D4]' : 'bg-gradient-to-r from-[#EF4444] to-[#F59E0B]'}`} />
+        <Card className="card-elevated border-border overflow-hidden">
+          <div className={`h-1 ${passed ? 'bg-gradient-to-r from-primary to-info' : 'bg-gradient-to-r from-destructive to-accent'}`} />
           <CardContent className="p-8 text-center">
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.1 }}
-              className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-5 ${passed ? 'bg-[#2DD4BF]/10 border border-[#2DD4BF]/20' : 'bg-[#EF4444]/10 border border-[#EF4444]/20'}`}>
-              {passed ? <Trophy className="w-10 h-10 text-[#2DD4BF]" /> : <XCircle className="w-10 h-10 text-[#EF4444]" />}
+              className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-5 ${passed ? 'bg-primary/10 border border-primary/20' : 'bg-destructive/10 border border-destructive/20'}`}>
+              {passed ? <Trophy className="w-10 h-10 text-primary" /> : <XCircle className="w-10 h-10 text-destructive" />}
             </motion.div>
-            <h2 className="text-2xl font-bold text-zinc-100 mb-1">{passed ? 'Challenge Complete!' : 'Keep Training'}</h2>
-            <p className="text-zinc-500 text-sm mb-6">{passed ? 'You\'ve proven your mastery!' : 'Study more and try again.'}</p>
-            <div className="text-4xl font-bold mb-1" style={{ color: passed ? '#2DD4BF' : '#EF4444' }}>{pct}%</div>
-            <p className="text-xs text-zinc-500 mb-5">{finalScore}/{quiz.questions.length} correct · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}</p>
+            <h2 className="text-2xl font-bold text-foreground mb-1">{passed ? 'Challenge Complete!' : 'Keep Training'}</h2>
+            <p className="text-muted-foreground text-sm mb-6">{passed ? 'You\'ve proven your mastery!' : 'Study more and try again.'}</p>
+            <div className="text-4xl font-bold mb-1" style={{ color: passed ? 'hsl(var(--primary))' : 'hsl(var(--destructive))' }}>{pct}%</div>
+            <p className="text-xs text-muted-foreground mb-5">{finalScore}/{quiz.questions.length} correct · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}</p>
 
             <div className="space-y-2 mb-6">
               {quiz.questions.map((q, i) => {
                 const userAns = quiz.selected[i];
                 const correct = userAns === q.correctAnswer;
                 return (
-                  <div key={i} className={`flex items-center gap-2 p-2 rounded-lg text-left ${correct ? 'bg-[#2DD4BF]/5' : 'bg-[#EF4444]/5'}`}>
-                    {correct ? <CheckCircle2 className="w-4 h-4 text-[#2DD4BF] shrink-0" /> : <XCircle className="w-4 h-4 text-[#EF4444] shrink-0" />}
-                    <span className="text-[11px] text-zinc-300 truncate">{q.question}</span>
+                  <div key={i} className={`flex items-center gap-2 p-2 rounded-lg text-left ${correct ? 'bg-primary/5' : 'bg-destructive/5'}`}>
+                    {correct ? <CheckCircle2 className="w-4 h-4 text-primary shrink-0" /> : <XCircle className="w-4 h-4 text-destructive shrink-0" />}
+                    <span className="text-xs text-foreground truncate">{q.question}</span>
                   </div>
                 );
               })}
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={() => setQuiz(null)} variant="outline" className="flex-1 h-9 text-xs glass border-zinc-700/50">
+              <Button onClick={() => setQuiz(null)} variant="outline" className="flex-1 h-9 text-xs card-elevated border-border">
                 <ArrowRight className="w-4 h-4 mr-1.5" /> Back to Challenges
               </Button>
-              <Button onClick={() => startRaid(activeClassroom, activeDifficulty, activeMode)} className="flex-1 h-9 text-xs bg-[#F59E0B]/10 text-[#F59E0B] hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20">
+              <Button onClick={() => startRaid(activeClassroom, activeDifficulty, activeMode)} className="flex-1 h-9 text-xs bg-accent/10 text-accent hover:bg-accent/20 border border-accent/20">
                 <RefreshCw className="w-4 h-4 mr-1.5" /> Retry
               </Button>
             </div>
@@ -291,40 +291,40 @@ export function MasteryRaids() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-zinc-500 hover:text-zinc-100" onClick={() => setQuiz(null)}>
+            <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-foreground" onClick={() => setQuiz(null)}>
               ← Exit
             </Button>
-            <Badge className="bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20">
+            <Badge className="bg-accent/10 text-accent border-accent/20">
               {quiz.currentIndex + 1}/{quiz.questions.length}
             </Badge>
           </div>
-          <div className="flex items-center gap-3 text-xs text-zinc-400">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" />
               {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')}
             </div>
             <div className="flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-[#2DD4BF]" />
+              <Zap className="w-3.5 h-3.5 text-primary" />
               {quiz.score} correct
             </div>
           </div>
         </div>
 
-        <Progress value={((quiz.currentIndex) / quiz.questions.length) * 100} className="h-1 mb-6 [&>div]:bg-gradient-to-r [&>div]:from-[#2DD4BF] [&>div]:to-[#06B6D4]" />
+        <Progress value={((quiz.currentIndex) / quiz.questions.length) * 100} className="h-1 mb-6 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-info" />
 
-        <Card className="glass border-zinc-800/50 card-depth-2 mb-4">
+        <Card className="card-elevated border-border mb-4">
           <CardContent className="p-5">
-            <p className="text-sm font-medium text-zinc-100 leading-relaxed">{q.question}</p>
+            <p className="text-sm font-medium text-foreground leading-relaxed">{q.question}</p>
           </CardContent>
         </Card>
 
         <div className="space-y-2 mb-4">
           {q.options.map((opt, i) => {
-            let cls = 'glass border-zinc-800/50 hover:border-[#2DD4BF]/30 hover:bg-zinc-800/40';
+            let cls = 'glass border-border hover:border-primary/30 hover:bg-muted/60';
             if (userSel !== null) {
-              if (i === q.correctAnswer) cls = 'bg-[#2DD4BF]/10 border-[#2DD4BF]/30';
-              else if (i === userSel) cls = 'bg-[#EF4444]/10 border-[#EF4444]/30';
-              else cls = 'glass border-zinc-800/30 opacity-50';
+              if (i === q.correctAnswer) cls = 'bg-primary/10 border-primary/30';
+              else if (i === userSel) cls = 'bg-destructive/10 border-destructive/30';
+              else cls = 'glass border-border opacity-50';
             }
             return (
               <motion.button
@@ -333,16 +333,16 @@ export function MasteryRaids() {
                 disabled={userSel !== null}
                 className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left ${cls}`}
               >
-                <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                  userSel !== null && i === q.correctAnswer ? 'bg-[#2DD4BF] text-[#09090B]' :
-                  userSel === i && i !== q.correctAnswer ? 'bg-[#EF4444] text-white' :
-                  'bg-zinc-800 text-zinc-400'
+                <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-2xs font-bold shrink-0 ${
+                  userSel !== null && i === q.correctAnswer ? 'bg-primary text-background' :
+                  userSel === i && i !== q.correctAnswer ? 'bg-destructive text-white' :
+                  'bg-muted text-muted-foreground'
                 }`}>
                   {optionLabels[i]}
                 </div>
-                <span className="text-sm text-zinc-200">{opt}</span>
-                {userSel !== null && i === q.correctAnswer && <CheckCircle2 className="w-4 h-4 text-[#2DD4BF] ml-auto shrink-0" />}
-                {userSel === i && i !== q.correctAnswer && <XCircle className="w-4 h-4 text-[#EF4444] ml-auto shrink-0" />}
+                <span className="text-sm text-foreground">{opt}</span>
+                {userSel !== null && i === q.correctAnswer && <CheckCircle2 className="w-4 h-4 text-primary ml-auto shrink-0" />}
+                {userSel === i && i !== q.correctAnswer && <XCircle className="w-4 h-4 text-destructive ml-auto shrink-0" />}
               </motion.button>
             );
           })}
@@ -350,15 +350,15 @@ export function MasteryRaids() {
 
         <AnimatePresence>
           {quiz.showResult && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`p-3 rounded-xl mb-4 text-xs ${userSel === q.correctAnswer ? 'bg-[#2DD4BF]/5 border border-[#2DD4BF]/20 text-[#2DD4BF]' : 'bg-[#EF4444]/5 border border-[#EF4444]/20 text-[#EF4444]'}`}>
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`p-3 rounded-xl mb-4 text-xs ${userSel === q.correctAnswer ? 'bg-primary/5 border border-primary/20 text-primary' : 'bg-destructive/5 border border-destructive/20 text-destructive'}`}>
               <p className="font-medium mb-1">{userSel === q.correctAnswer ? '✓ Correct!' : '✗ Incorrect'}</p>
-              {q.explanation && <p className="text-zinc-400">{q.explanation}</p>}
+              {q.explanation && <p className="text-muted-foreground">{q.explanation}</p>}
             </motion.div>
           )}
         </AnimatePresence>
 
         {quiz.showResult && (
-          <Button onClick={nextQuestion} className="w-full h-10 bg-[#2DD4BF]/10 text-[#2DD4BF] hover:bg-[#2DD4BF]/20 border border-[#2DD4BF]/20">
+          <Button onClick={nextQuestion} className="w-full h-10 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
             {quiz.currentIndex < quiz.questions.length - 1 ? <><ArrowRight className="w-4 h-4 mr-1.5" /> Next Question</> : <><Trophy className="w-4 h-4 mr-1.5" /> Finish Challenge</>}
           </Button>
         )}
@@ -370,19 +370,19 @@ export function MasteryRaids() {
     <>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-6 max-w-7xl mx-auto space-y-5">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-            <Swords className="w-5 h-5 text-[#F59E0B]" /> Challenges
+          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Swords className="w-5 h-5 text-accent" /> Challenges
           </h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Mock-exam quizzes (10 questions, AI-calibrated) and full Sample Exam papers modelled on your lecturer's past papers. Recommended at 70%+ readiness.
           </p>
         </div>
 
         {classrooms.length === 0 ? (
           <div className="text-center py-16">
-            <Swords className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-            <p className="text-zinc-400 font-medium">No subjects available</p>
-            <p className="text-[11px] text-zinc-600 mt-1">Upload documents to generate challenges</p>
+            <Swords className="w-12 h-12 text-muted-foreground/60 mx-auto mb-3" />
+            <p className="text-muted-foreground font-medium">No subjects available</p>
+            <p className="text-xs text-muted-foreground mt-1">Upload documents to generate challenges</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

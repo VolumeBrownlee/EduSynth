@@ -10,10 +10,10 @@ const ICONS = {
   info: Info,
 };
 const COLORS = {
-  achievement: { bg: 'bg-[#F59E0B]/10', border: 'border-[#F59E0B]/30', text: 'text-[#F59E0B]' },
-  success: { bg: 'bg-[#2DD4BF]/10', border: 'border-[#2DD4BF]/30', text: 'text-[#2DD4BF]' },
-  warning: { bg: 'bg-[#EF4444]/10', border: 'border-[#EF4444]/30', text: 'text-[#EF4444]' },
-  info: { bg: 'bg-zinc-800/60', border: 'border-zinc-700/30', text: 'text-zinc-300' },
+  achievement: { bg: 'bg-accent/10', border: 'border-accent/30', text: 'text-accent' },
+  success: { bg: 'bg-primary/10', border: 'border-primary/30', text: 'text-primary' },
+  warning: { bg: 'bg-destructive/10', border: 'border-destructive/30', text: 'text-destructive' },
+  info: { bg: 'bg-muted', border: 'border-border/30', text: 'text-foreground' },
 };
 
 function ToastItem({ toast }: { toast: { id: string; type: keyof typeof ICONS; title: string; message: string; duration?: number } }) {
@@ -32,16 +32,16 @@ function ToastItem({ toast }: { toast: { id: string; type: keyof typeof ICONS; t
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 60, scale: 0.9 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className={`flex items-start gap-3 p-3.5 rounded-xl glass-strong border ${color.border} shadow-lg min-w-[280px] max-w-[320px]`}
+      className={`flex items-start gap-3 p-3.5 rounded-xl card-elevated border ${color.border} shadow-lg min-w-[280px] max-w-[320px]`}
     >
       <div className={`w-8 h-8 rounded-lg ${color.bg} flex items-center justify-center shrink-0`}>
         <Icon className={`w-4 h-4 ${color.text}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-zinc-100">{toast.title}</p>
-        <p className="text-[10px] text-zinc-400 mt-0.5">{toast.message}</p>
+        <p className="text-xs font-semibold text-foreground">{toast.title}</p>
+        <p className="text-2xs text-muted-foreground mt-0.5">{toast.message}</p>
       </div>
-      <button onClick={() => removeToast(toast.id)} className="text-zinc-600 hover:text-zinc-300 transition-colors shrink-0">
+      <button onClick={() => removeToast(toast.id)} className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
         <X className="w-3.5 h-3.5" />
       </button>
     </motion.div>

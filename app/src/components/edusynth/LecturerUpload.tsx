@@ -22,9 +22,9 @@ interface LecturerUploadProps {
 }
 
 const CATEGORIES = [
-  { value: 'textbook', label: 'Textbook / Notes', icon: BookOpen, color: '#2DD4BF', desc: 'Readable by all students' },
-  { value: 'exam', label: 'Past Paper', icon: ClipboardList, color: '#F59E0B', desc: 'Restricted — hidden from students' },
-  { value: 'notes', label: 'Lecture Notes', icon: StickyNote, color: '#8B5CF6', desc: 'Readable by all students' },
+  { value: 'textbook', label: 'Textbook / Notes', icon: BookOpen, color: 'hsl(var(--primary))', desc: 'Readable by all students' },
+  { value: 'exam', label: 'Past Paper', icon: ClipboardList, color: 'hsl(var(--accent))', desc: 'Restricted — hidden from students' },
+  { value: 'notes', label: 'Lecture Notes', icon: StickyNote, color: 'hsl(var(--lecturer))', desc: 'Readable by all students' },
 ];
 
 interface UploadFile {
@@ -131,19 +131,19 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             className="fixed inset-x-4 top-[10%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 z-[90] w-full md:max-w-xl"
           >
-            <div className="glass-strong rounded-2xl border border-zinc-700/50 shadow-2xl overflow-hidden">
+            <div className="card-elevated rounded-2xl border border-border shadow-2xl overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800/50">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 flex items-center justify-center">
-                    <Upload className="w-4 h-4 text-[#2DD4BF]" />
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <Upload className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold text-zinc-100">Upload Documents</h2>
-                    <p className="text-[10px] text-zinc-500">Add notes, textbooks or past papers for students</p>
+                    <h2 className="text-sm font-semibold text-foreground">Upload Documents</h2>
+                    <p className="text-2xs text-muted-foreground">Add notes, textbooks or past papers for students</p>
                   </div>
                 </div>
-                <button onClick={handleClose} className="text-zinc-500 hover:text-zinc-200 transition-colors">
+                <button onClick={handleClose} className="text-muted-foreground hover:text-foreground transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -151,10 +151,10 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
               <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
                 {allDone ? (
                   <div className="text-center py-8">
-                    <CheckCircle2 className="w-12 h-12 text-[#2DD4BF] mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-zinc-100">Upload Successful!</p>
-                    <p className="text-xs text-zinc-500 mt-1">Documents are being processed and will appear in the course shortly.</p>
-                    <Button onClick={handleClose} className="mt-4 bg-[#2DD4BF]/10 text-[#2DD4BF] hover:bg-[#2DD4BF]/20 border border-[#2DD4BF]/20">
+                    <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-foreground">Upload Successful!</p>
+                    <p className="text-xs text-muted-foreground mt-1">Documents are being processed and will appear in the course shortly.</p>
+                    <Button onClick={handleClose} className="mt-4 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20">
                       Done
                     </Button>
                   </div>
@@ -162,7 +162,7 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                   <>
                     {/* Document Type */}
                     <div>
-                      <p className="text-[11px] text-zinc-400 font-medium mb-2 uppercase tracking-widest">Document Type</p>
+                      <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-widest">Document Type</p>
                       <div className="grid grid-cols-3 gap-2">
                         {CATEGORIES.map((cat) => {
                           const Icon = cat.icon;
@@ -184,7 +184,7 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                               className={`relative p-3 rounded-xl border-2 text-left transition-all ${
                                 isSelected
                                   ? 'shadow-md'
-                                  : 'bg-zinc-800/30 border-zinc-700/50 hover:border-zinc-600'
+                                  : 'bg-muted/30 border-border hover:border-border'
                               }`}
                             >
                               {isSelected && (
@@ -194,8 +194,8 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                                 />
                               )}
                               <Icon className="w-4 h-4 mb-1.5" style={{ color: cat.color }} />
-                              <p className="text-[11px] font-medium text-zinc-200">{cat.label}</p>
-                              <p className="text-[9px] text-zinc-500 mt-0.5">{cat.desc}</p>
+                              <p className="text-xs font-medium text-foreground">{cat.label}</p>
+                              <p className="text-2xs text-muted-foreground mt-0.5">{cat.desc}</p>
                             </button>
                           );
                         })}
@@ -205,25 +205,25 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                     {/* Course / Subject */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[11px] text-zinc-400 font-medium mb-1.5 block uppercase tracking-widest">
-                          Course Unit <span className="text-[#EF4444]">*</span>
+                        <label className="text-xs text-muted-foreground font-medium mb-1.5 block uppercase tracking-widest">
+                          Course Unit <span className="text-destructive">*</span>
                         </label>
                         <input
                           value={subject}
                           onChange={(e) => setSubject(e.target.value)}
                           placeholder="e.g., Data Structures"
-                          className="w-full bg-zinc-900/60 border border-zinc-700/50 rounded-xl px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[#2DD4BF]/40 transition-colors"
+                          className="w-full bg-muted border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-zinc-400 font-medium mb-1.5 block uppercase tracking-widest">
+                        <label className="text-xs text-muted-foreground font-medium mb-1.5 block uppercase tracking-widest">
                           Topic (optional)
                         </label>
                         <input
                           value={topic}
                           onChange={(e) => setTopic(e.target.value)}
                           placeholder="e.g., Linked Lists"
-                          className="w-full bg-zinc-900/60 border border-zinc-700/50 rounded-xl px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-[#2DD4BF]/40 transition-colors"
+                          className="w-full bg-muted border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
                         />
                       </div>
                     </div>
@@ -236,8 +236,8 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                       onClick={() => fileInputRef.current?.click()}
                       className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
                         isDragging
-                          ? 'border-[#2DD4BF]/60 bg-[#2DD4BF]/5'
-                          : 'border-zinc-700/50 hover:border-zinc-600 hover:bg-zinc-800/20'
+                          ? 'border-primary/60 bg-primary/5'
+                          : 'border-border hover:border-border hover:bg-muted/20'
                       }`}
                     >
                       <input
@@ -248,9 +248,9 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                         className="hidden"
                         onChange={(e) => addFiles(Array.from(e.target.files || []))}
                       />
-                      <Upload className="w-6 h-6 text-zinc-500 mx-auto mb-2" />
-                      <p className="text-sm text-zinc-300 font-medium">Drag & drop files here</p>
-                      <p className="text-[10px] text-zinc-600 mt-1">or click to browse — PDF, TXT, DOCX</p>
+                      <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-foreground font-medium">Drag & drop files here</p>
+                      <p className="text-2xs text-muted-foreground mt-1">or click to browse — PDF, TXT, DOCX</p>
                     </div>
 
                     {/* File List */}
@@ -259,18 +259,18 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                         {files.map((f, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-zinc-800/30 border border-zinc-700/30"
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/30 border border-border/30"
                           >
-                            <FileText className="w-4 h-4 text-[#2DD4BF] shrink-0" />
+                            <FileText className="w-4 h-4 text-primary shrink-0" />
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-zinc-200 truncate">{f.file.name}</p>
-                              <p className="text-[9px] text-zinc-600">{(f.file.size / 1024 / 1024).toFixed(1)} MB</p>
+                              <p className="text-xs text-foreground truncate">{f.file.name}</p>
+                              <p className="text-2xs text-muted-foreground">{(f.file.size / 1024 / 1024).toFixed(1)} MB</p>
                             </div>
-                            {f.status === 'uploading' && <Loader2 className="w-3.5 h-3.5 text-[#2DD4BF] animate-spin shrink-0" />}
-                            {f.status === 'done' && <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF] shrink-0" />}
-                            {f.status === 'error' && <AlertCircle className="w-3.5 h-3.5 text-[#EF4444] shrink-0" />}
+                            {f.status === 'uploading' && <Loader2 className="w-3.5 h-3.5 text-primary animate-spin shrink-0" />}
+                            {f.status === 'done' && <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />}
+                            {f.status === 'error' && <AlertCircle className="w-3.5 h-3.5 text-destructive shrink-0" />}
                             {f.status === 'idle' && (
-                              <button onClick={() => removeFile(idx)} className="text-zinc-600 hover:text-zinc-300 shrink-0">
+                              <button onClick={() => removeFile(idx)} className="text-muted-foreground hover:text-foreground shrink-0">
                                 <X className="w-3.5 h-3.5" />
                               </button>
                             )}
@@ -283,33 +283,33 @@ export function LecturerUpload({ isOpen, onClose }: LecturerUploadProps) {
                         lecturer can see exactly which tier this upload will
                         land in before clicking Upload. */}
                     {category === 'exam' ? (
-                      <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-[#F59E0B]/10 border-2 border-[#F59E0B]/40">
-                        <AlertCircle className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
-                        <div className="flex-1 text-[11px]">
-                          <p className="text-[#F59E0B] font-semibold">Uploading as RESTRICTED past paper</p>
-                          <p className="text-[#F59E0B]/80 mt-0.5">
+                      <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-accent/10 border-2 border-accent/40">
+                        <AlertCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                        <div className="flex-1 text-xs">
+                          <p className="text-accent font-semibold">Uploading as RESTRICTED past paper</p>
+                          <p className="text-accent/80 mt-0.5">
                             Students will NOT see this file. The AI will use it only as a structural reference when generating Sample Exam papers.
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-start gap-2.5 px-3 py-2 rounded-xl bg-zinc-800/30 border border-zinc-700/50">
-                        <FileText className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
-                        <p className="text-[10px] text-zinc-400">
-                          Uploading as <span className="text-zinc-200 font-medium">public study material</span> — students can read this. To upload a past exam paper instead, pick "Past Paper" above.
+                      <div className="flex items-start gap-2.5 px-3 py-2 rounded-xl bg-muted/30 border border-border">
+                        <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                        <p className="text-2xs text-muted-foreground">
+                          Uploading as <span className="text-foreground font-medium">public study material</span> — students can read this. To upload a past exam paper instead, pick"Past Paper" above.
                         </p>
                       </div>
                     )}
 
                     {/* Actions */}
                     <div className="flex gap-3 pt-1">
-                      <Button variant="ghost" onClick={handleClose} className="flex-1 text-zinc-400 hover:text-zinc-200 border border-zinc-700/50">
+                      <Button variant="ghost" onClick={handleClose} className="flex-1 text-muted-foreground hover:text-foreground border border-border">
                         Cancel
                       </Button>
                       <Button
                         onClick={handleUpload}
                         disabled={!files.length || !subject.trim() || isUploading}
-                        className="flex-1 bg-[#2DD4BF]/10 text-[#2DD4BF] hover:bg-[#2DD4BF]/20 border border-[#2DD4BF]/20 disabled:opacity-40"
+                        className="flex-1 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 disabled:opacity-40"
                       >
                         {isUploading ? (
                           <>

@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Eye, EyeOff, GraduationCap, Loader2, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap, Loader2, CheckCircle, Presentation } from 'lucide-react';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
       </div>
 
@@ -98,10 +98,10 @@ export default function Register() {
                 key={s}
                 className={`w-8 h-8 rounded-full flex items-center justify-center mx-2 text-sm font-medium transition-colors ${
                   s === step
-                    ? 'bg-cyan-500 text-white'
+                    ? 'bg-primary text-white'
                     : s < step
-                    ? 'bg-cyan-500/30 text-cyan-400'
-                    : 'bg-white/10 text-muted-foreground'
+                    ? 'bg-primary/30 text-primary'
+                    : 'bg-muted/60 text-muted-foreground'
                 }`}
               >
                 {s < step ? <CheckCircle className="w-4 h-4" /> : s}
@@ -228,24 +228,27 @@ export default function Register() {
     <Label htmlFor="role">I am a...</Label>
     <div className="grid grid-cols-2 gap-3">
       {[
-        { value: 'student', label: 'Student', desc: 'Learn and grow', icon: '🎓' },
-        { value: 'lecturer', label: 'Lecturer', desc: 'Teach and upload', icon: '👨‍🏫' },
-      ].map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => setFormData(prev => ({ ...prev, role: option.value }))}
-          className={`p-3 rounded-xl border text-left transition-all ${
-            formData.role === option.value
-              ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-300'
-              : 'bg-white/5 border-white/10 text-muted-foreground hover:border-white/20'
-          }`}
-        >
-          <div className="text-xl mb-1">{option.icon}</div>
-          <div className="text-sm font-medium">{option.label}</div>
-          <div className="text-[10px] opacity-70">{option.desc}</div>
-        </button>
-      ))}
+        { value: 'student',  label: 'Student',  desc: 'Learn and grow',  Icon: GraduationCap },
+        { value: 'lecturer', label: 'Lecturer', desc: 'Teach and upload', Icon: Presentation },
+      ].map((option) => {
+        const isActive = formData.role === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setFormData(prev => ({ ...prev, role: option.value }))}
+            className={`p-3 rounded-xl border text-left transition-all active:scale-[0.98] ${
+              isActive
+                ? 'bg-primary/10 border-primary/40 text-primary'
+                : 'bg-muted/40 border-border text-muted-foreground hover:border-primary/30 hover:text-foreground'
+            }`}
+          >
+            <option.Icon className={`w-5 h-5 mb-1.5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+            <div className="text-sm font-medium">{option.label}</div>
+            <div className="text-xs opacity-70">{option.desc}</div>
+          </button>
+        );
+      })}
     </div>
   </div>
 </div>
@@ -281,7 +284,7 @@ export default function Register() {
                     className="glass-input"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Use <span className="text-cyan-400 font-mono">EDUSYNTH</span> for the demo
+                    Use <span className="text-primary font-mono">EDUSYNTH</span> for the demo
                   </p>
                 </div>
                 <div className="flex space-x-3">
@@ -310,7 +313,7 @@ export default function Register() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-medium">
+              <Link to="/login" className="text-primary hover:text-primary font-medium">
                 Sign in
               </Link>
             </p>

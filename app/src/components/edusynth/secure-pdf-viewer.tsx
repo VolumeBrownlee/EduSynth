@@ -99,18 +99,18 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
   const page = pages[currentPage] ?? '';
 
   return (
-    <Card className="glass border-zinc-800/50 overflow-hidden h-full flex flex-col">
+    <Card className="card-elevated border-border overflow-hidden h-full flex flex-col">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800/50 bg-zinc-900/60 shrink-0">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#2DD4BF]/10 flex items-center justify-center">
-            <FileText className="w-3.5 h-3.5 text-[#2DD4BF]" />
+          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+            <FileText className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs text-zinc-300 truncate max-w-[200px] font-medium">
+            <p className="text-xs text-foreground truncate max-w-[200px] font-medium">
               {selectedDocument ? docTitle || selectedDocument.title : 'Select a document'}
             </p>
-            <p className="text-[9px] text-zinc-600">
+            <p className="text-2xs text-muted-foreground">
               {totalPages} page{totalPages !== 1 ? 's' : ''} • {selectedDocument?.category || 'textbook'}
             </p>
           </div>
@@ -118,32 +118,32 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
 
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={handleZoomOut}
-            className="h-7 w-7 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50" title="Zoom Out">
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted" title="Zoom Out">
             <ZoomOut className="w-3.5 h-3.5" />
           </Button>
-          <span className="text-[10px] text-zinc-500 w-10 text-center tabular-nums font-medium">{zoom}%</span>
+          <span className="text-2xs text-muted-foreground w-10 text-center tabular-nums font-medium">{zoom}%</span>
           <Button variant="ghost" size="icon" onClick={handleZoomIn}
-            className="h-7 w-7 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50" title="Zoom In">
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted" title="Zoom In">
             <ZoomIn className="w-3.5 h-3.5" />
           </Button>
-          <div className="w-px h-4 bg-zinc-800 mx-1" />
+          <div className="w-px h-4 bg-muted mx-1" />
           <Button variant="ghost" size="icon" onClick={() => goToPage(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0 || totalPages === 0}
-            className="h-7 w-7 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 disabled:opacity-30" title="Previous Page">
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30" title="Previous Page">
             <ChevronLeft className="w-3.5 h-3.5" />
           </Button>
-          <span className="text-[10px] text-zinc-400 tabular-nums font-medium px-1">
+          <span className="text-2xs text-muted-foreground tabular-nums font-medium px-1">
             {totalPages > 0 ? `${currentPage + 1} / ${totalPages}` : '—'}
           </span>
           <Button variant="ghost" size="icon" onClick={() => goToPage(Math.min(totalPages - 1, currentPage + 1))}
             disabled={currentPage >= totalPages - 1 || totalPages === 0}
-            className="h-7 w-7 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 disabled:opacity-30" title="Next Page">
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30" title="Next Page">
             <ChevronLeft className="w-3.5 h-3.5 rotate-180" />
           </Button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge className="bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20 text-[9px] px-2 py-0.5 h-5">
+          <Badge className="bg-accent/10 text-accent border-accent/20 text-2xs px-2 py-0.5 h-5">
             <Eye className="w-2.5 h-2.5 mr-1" />
             Protected
           </Badge>
@@ -151,22 +151,22 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
       </div>
 
       {/* Security Banner */}
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F59E0B]/5 border-b border-[#F59E0B]/10 shrink-0">
-        <Shield className="w-3 h-3 text-[#F59E0B] shrink-0" />
-        <span className="text-[10px] text-[#F59E0B]/80 truncate">
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/5 border-b border-accent/10 shrink-0">
+        <Shield className="w-3 h-3 text-accent shrink-0" />
+        <span className="text-2xs text-accent/80 truncate">
           Protected Document — Right-click, Save, and Print disabled. Watermark: {profile?.full_name} — {profile?.id?.slice(0, 8).toUpperCase()}
         </span>
         <div className="flex items-center gap-1 ml-auto shrink-0">
-          <Ban className="w-2.5 h-2.5 text-[#F59E0B]/40" />
-          <Printer className="w-2.5 h-2.5 text-[#F59E0B]/40" />
-          <Download className="w-2.5 h-2.5 text-[#F59E0B]/40" />
+          <Ban className="w-2.5 h-2.5 text-accent/40" />
+          <Printer className="w-2.5 h-2.5 text-accent/40" />
+          <Download className="w-2.5 h-2.5 text-accent/40" />
         </div>
       </div>
 
       {/* Document Canvas */}
       <div
         id="secure-pdf-viewer"
-        className="relative no-select overflow-auto bg-zinc-950/80 flex-1"
+        className="relative no-select overflow-auto bg-background/80 flex-1"
         style={{ minHeight: '400px' }}
       >
         {/* Watermark */}
@@ -181,7 +181,7 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-10 pointer-events-none border-2 border-[#2DD4BF]/50 rounded-sm"
+            className="absolute inset-0 z-10 pointer-events-none border-2 border-primary/50 rounded-sm"
             style={{ boxShadow: 'inset 0 0 30px rgba(45, 212, 191, 0.15)' }}
           />
         )}
@@ -189,24 +189,24 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
         {/* Loading state */}
         {isLoading && (
           <div className="flex flex-col items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 text-[#2DD4BF] animate-spin mb-3" />
-            <p className="text-sm text-zinc-400">Loading document...</p>
+            <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
+            <p className="text-sm text-muted-foreground">Loading document...</p>
           </div>
         )}
 
         {/* No document selected */}
         {!selectedDocument && !isLoading && (
           <div className="flex flex-col items-center justify-center h-64 text-center px-8">
-            <FileText className="w-10 h-10 text-zinc-700 mb-3" />
-            <p className="text-sm text-zinc-400 font-medium">No document selected</p>
-            <p className="text-xs text-zinc-600 mt-1">Choose a document from the course to start reading</p>
+            <FileText className="w-10 h-10 text-muted-foreground/60 mb-3" />
+            <p className="text-sm text-muted-foreground font-medium">No document selected</p>
+            <p className="text-xs text-muted-foreground mt-1">Choose a document from the course to start reading</p>
           </div>
         )}
 
         {/* Error state */}
         {error && !isLoading && (
           <div className="flex flex-col items-center justify-center h-32 text-center px-8">
-            <p className="text-xs text-[#EF4444]/70">{error}</p>
+            <p className="text-xs text-destructive/70">{error}</p>
           </div>
         )}
 
@@ -222,17 +222,17 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
           >
             <div className="prose prose-invert prose-sm max-w-none">
               <div className="flex items-center gap-2 mb-5">
-                <h2 className="text-base font-bold text-[#2DD4BF] tracking-tight leading-tight m-0">
+                <h2 className="text-base font-bold text-primary tracking-tight leading-tight m-0">
                   {docTitle || selectedDocument.title}
                 </h2>
-                <Badge className="bg-zinc-800/60 text-zinc-400 border-zinc-700/50 text-[9px] shrink-0">
+                <Badge className="bg-muted text-muted-foreground border-border text-2xs shrink-0">
                   Page {currentPage + 1}
                 </Badge>
               </div>
-              <div className={`whitespace-pre-wrap text-zinc-300 text-sm leading-relaxed font-mono rounded-xl p-6 border transition-colors duration-500 ${
+              <div className={`whitespace-pre-wrap text-foreground text-sm leading-relaxed font-mono rounded-xl p-6 border transition-colors duration-500 ${
                 highlightActive
-                  ? 'bg-[#2DD4BF]/5 border-[#2DD4BF]/30'
-                  : 'bg-zinc-900/30 border-zinc-800/30'
+                  ? 'bg-primary/5 border-primary/30'
+                  : 'bg-muted/30 border-border'
               }`}>
                 {page}
               </div>
@@ -242,7 +242,7 @@ export function SecurePdfViewer({ jumpToPage, onPageJumpHandled }: SecurePdfView
 
         {/* Page corner */}
         {totalPages > 0 && (
-          <div className="absolute bottom-3 right-3 glass rounded-md px-2 py-1 text-[9px] text-zinc-600 tabular-nums">
+          <div className="absolute bottom-3 right-3 card-elevated rounded-md px-2 py-1 text-2xs text-muted-foreground tabular-nums">
             {currentPage + 1} / {totalPages}
           </div>
         )}

@@ -13,32 +13,32 @@ export function AiRecommendations() {
     if (low.length > 0) {
       const sp = low[0];
       const c = classrooms.find((x) => x.id === sp.classroom_id);
-      if (c) recs.push({ title: `Review ${c.name}`, reason: 'Low ready-score detected', action: 'Open Courses', color: '#EF4444', classroomId: c.id });
+      if (c) recs.push({ title: `Review ${c.name}`, reason: 'Low ready-score detected', action: 'Open Courses', color: 'hsl(var(--destructive))', classroomId: c.id });
     }
 
     const mid = studyProgress.filter((p) => p.ready_score >= 40 && p.ready_score < 70);
     if (mid.length > 0) {
       const sp = mid[0];
       const c = classrooms.find((x) => x.id === sp.classroom_id);
-      if (c) recs.push({ title: `Continue ${c.name}`, reason: 'Almost challenge-ready!', action: 'Keep Going', color: '#F59E0B', classroomId: c.id });
+      if (c) recs.push({ title: `Continue ${c.name}`, reason: 'Almost challenge-ready!', action: 'Keep Going', color: 'hsl(var(--accent))', classroomId: c.id });
     }
 
     if (studyProgress.some((p) => p.ready_score >= 70)) {
-      recs.push({ title: 'Challenge Yourself', reason: 'You\'re ready for a Challenge', action: 'Start Challenge', color: '#2DD4BF' });
+      recs.push({ title: 'Challenge Yourself', reason: 'You\'re ready for a Challenge', action: 'Start Challenge', color: 'hsl(var(--primary))' });
     }
 
     if (recs.length === 0) {
-      recs.push({ title: 'Start Learning', reason: 'Upload documents to get started', action: 'Browse Courses', color: '#8B5CF6' });
+      recs.push({ title: 'Start Learning', reason: 'Upload documents to get started', action: 'Browse Courses', color: 'hsl(var(--lecturer))' });
     }
 
     return recs.slice(0, 3);
   }, [classrooms, studyProgress]);
 
   return (
-    <Card className="glass border-zinc-800/50 h-full card-depth-1">
+    <Card className="card-elevated border-border h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-zinc-100 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#8B5CF6]" />
+        <CardTitle className="text-sm text-foreground flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-lecturer" />
           AI Recommendations
         </CardTitle>
       </CardHeader>
@@ -57,14 +57,14 @@ export function AiRecommendations() {
                 setCurrentView('course-sector');
               }
             }}
-            className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-900/40 hover:bg-zinc-800/40 border border-zinc-800/30 transition-all group text-left"
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-muted/40 hover:bg-muted/60 border border-border transition-all group text-left"
           >
             <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: rec.color }} />
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold text-zinc-100 group-hover:text-white">{rec.title}</p>
-              <p className="text-[9px] text-zinc-500">{rec.reason}</p>
+              <p className="text-xs font-semibold text-foreground group-hover:text-white">{rec.title}</p>
+              <p className="text-2xs text-muted-foreground">{rec.reason}</p>
             </div>
-            <ArrowRight className="w-3 h-3 shrink-0 text-zinc-600 group-hover:text-zinc-300 transition-colors" />
+            <ArrowRight className="w-3 h-3 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
           </button>
         ))}
       </CardContent>

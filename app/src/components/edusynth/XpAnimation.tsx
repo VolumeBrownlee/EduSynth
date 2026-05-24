@@ -18,7 +18,7 @@ function XpFloater({ item }: { item: { id: string; amount: number; x: number; y:
       animate={{ opacity: 0, y: -60, scale: 1.3 }}
       transition={{ duration: 1.5, ease: 'easeOut' }}
     >
-      <span className="text-[#2DD4BF] font-bold text-sm drop-shadow-lg">+{item.amount} XP</span>
+      <span className="text-primary font-bold text-sm drop-shadow-lg">+{item.amount} XP</span>
     </motion.div>
   );
 }

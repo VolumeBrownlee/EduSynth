@@ -18,9 +18,9 @@ import { Progress } from '@/components/ui/progress';
 import { useState, useEffect, useCallback } from 'react';
 
 const difficultyStyles = {
-  easy: { bg: 'bg-[#2DD4BF]/10', text: 'text-[#2DD4BF]', border: 'border-[#2DD4BF]/30' },
-  medium: { bg: 'bg-[#F59E0B]/10', text: 'text-[#F59E0B]', border: 'border-[#F59E0B]/30' },
-  hard: { bg: 'bg-[#EF4444]/10', text: 'text-[#EF4444]', border: 'border-[#EF4444]/30' },
+  easy: { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/30' },
+  medium: { bg: 'bg-accent/10', text: 'text-accent', border: 'border-accent/30' },
+  hard: { bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30' },
 };
 
 interface FlashcardViewerProps {
@@ -150,14 +150,14 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
           transition={{ type: 'spring', stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="glass-strong border-zinc-700/50 w-full max-w-md">
+          <Card className="card-elevated border-border w-full max-w-md">
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#2DD4BF]/10 border-2 border-[#2DD4BF]/30 flex items-center justify-center mx-auto mb-4">
-                <Loader2 className="w-8 h-8 text-[#2DD4BF] animate-spin" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
               <h3 className="text-lg font-bold text-foreground mb-2">Generating Flashcards...</h3>
               <p className="text-sm text-muted-foreground mb-1">AI is creating active-recall cards for</p>
-              <p className="text-sm text-[#2DD4BF] font-semibold">{topic}</p>
+              <p className="text-sm text-primary font-semibold">{topic}</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -178,10 +178,10 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
           animate={{ scale: 1, opacity: 1, y: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="glass-strong border-zinc-700/50 w-full max-w-md">
+          <Card className="card-elevated border-border w-full max-w-md">
             <CardContent className="p-7 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-7 h-7 text-[#F59E0B]" />
+              <div className="w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-7 h-7 text-accent" />
               </div>
               <h3 className="text-base font-semibold text-foreground mb-2">Couldn't generate flashcards</h3>
               <p className="text-xs text-muted-foreground mb-5">
@@ -211,24 +211,24 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-2xl"
       >
-        <Card className="glass-strong border-zinc-700/50 overflow-hidden">
+        <Card className="card-elevated border-border overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#2DD4BF]/10 flex items-center justify-center">
-                  <Brain className="w-4 h-4 text-[#2DD4BF]" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <CardTitle className="text-sm text-foreground flex items-center gap-2">
                     Flashcard Study
-                    <Badge className="text-[8px] bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/20 px-1.5 py-0">
+                    <Badge className="text-2xs bg-lecturer/10 text-lecturer border-lecturer/20 px-1.5 py-0">
                       AI-Generated
                     </Badge>
-                    <Badge className="text-[8px] bg-[#2DD4BF]/10 text-[#2DD4BF] border-[#2DD4BF]/20 px-1.5 py-0">
+                    <Badge className="text-2xs bg-primary/10 text-primary border-primary/20 px-1.5 py-0">
                       {topic}
                     </Badge>
                   </CardTitle>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                  <p className="text-2xs text-muted-foreground mt-0.5">
                     {currentIndex + 1} / {deck.length} · Space to flip · ← → to navigate
                   </p>
                 </div>
@@ -242,12 +242,12 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
 
             <div className="mt-2">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] text-muted-foreground">Mastery Progress</span>
-                <span className="text-[9px] text-[#2DD4BF] font-medium">{masteredCount}/{deck.length} mastered</span>
+                <span className="text-2xs text-muted-foreground">Mastery Progress</span>
+                <span className="text-2xs text-primary font-medium">{masteredCount}/{deck.length} mastered</span>
               </div>
               <Progress
                 value={progressPercent}
-                className="h-1.5 bg-zinc-800 [&>div]:bg-gradient-to-r [&>div]:from-[#2DD4BF] [&>div]:to-[#06B6D4] [&>div]:rounded-full"
+                className="h-1.5 bg-muted [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-info [&>div]:rounded-full"
               />
             </div>
           </CardHeader>
@@ -266,15 +266,15 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
               >
                 <div
                   style={{ backfaceVisibility: 'hidden' }}
-                  className="w-full min-h-[200px] p-6 rounded-xl bg-zinc-900/60 border border-zinc-700/30 flex flex-col items-center justify-center text-center"
+                  className="w-full min-h-[200px] p-6 rounded-xl bg-muted border border-border/30 flex flex-col items-center justify-center text-center"
                 >
-                  <Badge className={`mb-3 text-[9px] px-2 py-0.5 ${diffStyle.bg} ${diffStyle.text} ${diffStyle.border} border`}>
+                  <Badge className={`mb-3 text-2xs px-2 py-0.5 ${diffStyle.bg} ${diffStyle.text} ${diffStyle.border} border`}>
                     {currentCard.difficulty.toUpperCase()}
                   </Badge>
                   <p className="text-sm md:text-base font-medium text-foreground leading-relaxed">
                     {currentCard.front}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-4">Click to reveal answer</p>
+                  <p className="text-2xs text-muted-foreground mt-4">Click to reveal answer</p>
                 </div>
 
                 <div
@@ -284,12 +284,12 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
                     position: 'absolute',
                     inset: 0,
                   }}
-                  className="w-full min-h-[200px] p-6 rounded-xl bg-[#2DD4BF]/5 border border-[#2DD4BF]/20 flex flex-col items-center justify-center text-center"
+                  className="w-full min-h-[200px] p-6 rounded-xl bg-primary/5 border border-primary/20 flex flex-col items-center justify-center text-center"
                 >
                   <p className="text-sm md:text-base text-foreground leading-relaxed">
                     {currentCard.back}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-4">Click to see question</p>
+                  <p className="text-2xs text-muted-foreground mt-4">Click to see question</p>
                 </div>
               </motion.div>
             </div>
@@ -318,8 +318,8 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
                   onClick={handleMastered}
                   className={`h-8 text-xs ${
                     currentCard.mastered
-                      ? 'bg-[#2DD4BF]/10 border-[#2DD4BF]/30 text-[#2DD4BF]'
-                      : 'hover:text-[#2DD4BF] hover:bg-[#2DD4BF]/10 hover:border-[#2DD4BF]/30'
+                      ? 'bg-primary/10 border-primary/30 text-primary'
+                      : 'hover:text-primary hover:bg-primary/10 hover:border-primary/30'
                   }`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
@@ -346,10 +346,10 @@ export function FlashcardViewer({ onClose, subject, topic }: FlashcardViewerProp
                   onClick={() => { setCurrentIndex(i); setIsFlipped(false); }}
                   className={`w-2 h-2 rounded-full transition-all ${
                     i === currentIndex
-                      ? 'bg-[#2DD4BF] w-4'
+                      ? 'bg-primary w-4'
                       : card.mastered
-                      ? 'bg-[#2DD4BF]/40'
-                      : 'bg-zinc-700 hover:bg-zinc-600'
+                      ? 'bg-primary/40'
+                      : 'bg-muted-foreground/30 hover:bg-muted-foreground/40'
                   }`}
                 />
               ))}

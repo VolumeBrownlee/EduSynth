@@ -58,27 +58,27 @@ export function CommandPalette({ isOpen, onClose }: Props) {
             transition={{ type: 'spring', stiffness: 500, damping: 35 }}
             className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[90] w-full max-w-lg"
           >
-            <div className="glass-strong rounded-2xl border border-zinc-700/50 shadow-2xl overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800/50">
-                <Search className="w-4 h-4 text-zinc-500 shrink-0" />
+            <div className="card-elevated rounded-2xl border border-border shadow-2xl overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input
                   ref={inputRef}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search commands..."
-                  className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 outline-none"
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') onClose();
                     if (e.key === 'Enter' && filtered.length > 0) handleSelect(filtered[0].id);
                   }}
                 />
-                <button onClick={onClose} className="text-zinc-600 hover:text-zinc-300 transition-colors">
+                <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
               <div className="p-2 max-h-72 overflow-y-auto">
                 {filtered.length === 0 ? (
-                  <p className="text-center text-xs text-zinc-500 py-6">No commands found</p>
+                  <p className="text-center text-xs text-muted-foreground py-6">No commands found</p>
                 ) : (
                   filtered.map((cmd) => {
                     const Icon = cmd.icon;
@@ -86,22 +86,22 @@ export function CommandPalette({ isOpen, onClose }: Props) {
                       <button
                         key={cmd.id}
                         onClick={() => handleSelect(cmd.id)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-800/50 transition-all group text-left"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-all group text-left"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-[#2DD4BF]/10 flex items-center justify-center shrink-0 group-hover:bg-[#2DD4BF]/20 transition-colors">
-                          <Icon className="w-4 h-4 text-[#2DD4BF]" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                          <Icon className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-zinc-100">{cmd.label}</p>
-                          <p className="text-[10px] text-zinc-500">{cmd.desc}</p>
+                          <p className="text-sm font-medium text-foreground">{cmd.label}</p>
+                          <p className="text-2xs text-muted-foreground">{cmd.desc}</p>
                         </div>
-                        <kbd className="text-[9px] text-zinc-500 px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 hidden md:block">{cmd.shortcut}</kbd>
+                        <kbd className="text-2xs text-muted-foreground px-1.5 py-0.5 rounded bg-muted border border-border hidden md:block">{cmd.shortcut}</kbd>
                       </button>
                     );
                   })
                 )}
               </div>
-              <div className="px-4 py-2 border-t border-zinc-800/50 flex items-center gap-3 text-[9px] text-zinc-600">
+              <div className="px-4 py-2 border-t border-border flex items-center gap-3 text-2xs text-muted-foreground">
                 <span>↵ Select</span>
                 <span>↑↓ Navigate</span>
                 <span>Esc Close</span>

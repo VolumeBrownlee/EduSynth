@@ -246,70 +246,63 @@ IMPORTANT: Return ONLY valid JSON, no markdown formatting.`;
   }
 
   /**
-   * Analyze exam difficulty from restricted content
+   * Analyze exam difficulty from restricted content.
+   *
+   * The caller (ragEngine.generateCalibratedQuiz) only uses the
+   * `overallDifficulty` field, so we ask Gemini for the minimal possible
+   * payload. Earlier versions of this prompt requested a 12-field schema with
+   * nested objects, causing Gemini to fill long descriptive strings and hit
+   * the 4096-token cap mid-JSON — producing the
+   * "Gemini returned unparseable JSON" warning on every quiz generation.
+   *
+   * The current contract: respond with exactly `{"overallDifficulty":"<one of: beginner|intermediate|advanced>"}`.
    */
   async analyzeExamDifficulty(examContent) {
     try {
-      const prompt = `Analyze the following exam/exam paper and provide detailed difficulty analysis.
+      // Cap input — calibration only needs the *style* of past papers,
+      // not their full text. Anything beyond ~6k chars is wasted context.
+      const trimmedContent = examContent.length > 6000
+        ? examContent.slice(0, 6000) + '\n[...truncated for calibration...]'
+        : examContent;
+
+      const prompt = `Read the past exam paper(s) below and judge the OVERALL DIFFICULTY level the lecturer typically sets.
 
 EXAM CONTENT:
-${examContent}
+${trimmedContent}
 
-Provide analysis in this JSON format:
-{
-  "overallDifficulty": "intermediate",
-  "difficultyScore": 65,
-  "topicDistribution": {
-    "topic1": { "percentage": 30, "difficulty": "easy" },
-    "topic2": { "percentage": 40, "difficulty": "medium" },
-    "topic3": { "percentage": 30, "difficulty": "hard" }
-  },
-  "questionTypes": {
-    "multiple_choice": 40,
-    "short_answer": 35,
-    "essay": 25
-  },
-  "cognitiveLevels": {
-    "remember": 20,
-    "understand": 30,
-    "apply": 30,
-    "analyze": 15,
-    "evaluate": 5
-  },
-  "timePressure": "moderate",
-  "commonMistakes": ["mistake1", "mistake2"],
-  "keyConcepts": ["concept1", "concept2", "concept3"],
-  "weightingFactors": {
-    "fundamentals": 0.3,
-    "application": 0.4,
-    "analysis": 0.3
-  }
-}
+Respond with EXACTLY this JSON shape and nothing else. No commentary, no prose, no markdown fences:
+{"overallDifficulty":"intermediate"}
 
-Return ONLY valid JSON.`;
+The value MUST be one of: "beginner", "intermediate", or "advanced".`;
 
       const result = await this.model.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
           ...this.generationConfig,
-          temperature: 0.2,
-          maxOutputTokens: 4096,
+          temperature: 0.1,           // Deterministic classification, not creative writing
+          maxOutputTokens: 64,        // ~30 chars of JSON — more than enough
           responseMimeType: 'application/json'
         }
       });
 
       const responseText = result.response.text();
       const parsed = safeParseGeminiJson(responseText);
-      if (!parsed) {
-        // Truncated or malformed output — calibration is optional, so skip it
+      if (!parsed || !parsed.overallDifficulty) {
         logger.warn('analyzeExamDifficulty: Gemini returned unparseable JSON, skipping calibration');
         return null;
       }
-      return parsed;
+      // Normalise to the three accepted values.
+      const normalised = String(parsed.overallDifficulty).toLowerCase().trim();
+      const accepted = ['beginner', 'intermediate', 'advanced'];
+      if (!accepted.includes(normalised)) {
+        logger.warn(`analyzeExamDifficulty: Gemini returned unexpected value "${parsed.overallDifficulty}", skipping calibration`);
+        return null;
+      }
+      return { overallDifficulty: normalised };
     } catch (error) {
       logger.error('Error analyzing exam difficulty:', error);
-      // Returning null instead of throwing — the ragEngine treats null as
-      // "no calibration available" and falls back to the requested difficulty.
+      // ragEngine treats null as "no calibration available" and falls back
+      // to the user-requested difficulty.
       return null;
     }
   }

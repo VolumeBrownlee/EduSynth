@@ -4,10 +4,10 @@ import { useEduSynthStore } from '@/store/edusynth-store';
 import { useMemo } from 'react';
 
 const ICON_MAP: Record<string, { icon: React.ElementType; color: string }> = {
-  chat: { icon: MessageSquare, color: '#2DD4BF' },
-  document: { icon: BookOpen, color: '#8B5CF6' },
-  quiz: { icon: Swords, color: '#F59E0B' },
-  achievement: { icon: Award, color: '#F59E0B' },
+  chat: { icon: MessageSquare, color: 'hsl(var(--primary))' },
+  document: { icon: BookOpen, color: 'hsl(var(--lecturer))' },
+  quiz: { icon: Swords, color: 'hsl(var(--accent))' },
+  achievement: { icon: Award, color: 'hsl(var(--accent))' },
 };
 
 export function ActivityFeed() {
@@ -32,29 +32,29 @@ export function ActivityFeed() {
   }, [chatSessions, documents, notifications]);
 
   return (
-    <Card className="glass border-zinc-800/50 card-depth-1">
+    <Card className="card-elevated border-border">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-zinc-100 flex items-center gap-2">
-          <Activity className="w-4 h-4 text-[#2DD4BF]" />
+        <CardTitle className="text-sm text-foreground flex items-center gap-2">
+          <Activity className="w-4 h-4 text-primary" />
           Recent Activity
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {activities.length === 0 ? (
-          <p className="text-[11px] text-zinc-500 text-center py-4">No recent activity yet. Start learning!</p>
+          <p className="text-xs text-muted-foreground text-center py-4">No recent activity yet. Start learning!</p>
         ) : (
           activities.map((a, i) => {
             const { icon: Icon, color } = ICON_MAP[a.type] ?? ICON_MAP.document;
             return (
-              <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-zinc-800/20 transition-colors">
+              <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/20 transition-colors">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}15` }}>
                   <Icon className="w-3.5 h-3.5" style={{ color }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] text-zinc-200 font-medium truncate">{a.label}</p>
-                  <p className="text-[9px] text-zinc-500 truncate">{a.sub}</p>
+                  <p className="text-xs text-foreground font-medium truncate">{a.label}</p>
+                  <p className="text-2xs text-muted-foreground truncate">{a.sub}</p>
                 </div>
-                <span className="text-[9px] text-zinc-600 shrink-0">
+                <span className="text-2xs text-muted-foreground shrink-0">
                   {new Date(a.time).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                 </span>
               </div>

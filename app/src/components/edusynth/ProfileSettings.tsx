@@ -50,7 +50,7 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
       setProfile({ ...profile, study_handle: saved });
       setHandleInput(saved);
       setHandleMsg({ type: 'ok', text: 'Study handle updated' });
-      addToast({ type: 'success', title: 'Study Handle Updated', message: `You'll appear as "${saved}" on leaderboards.` });
+      addToast({ type: 'success', title: 'Study Handle Updated', message: `You'll appear as"${saved}" on leaderboards.` });
     } catch (err: any) {
       setHandleMsg({ type: 'err', text: err?.response?.data?.message || 'Could not update study handle' });
     } finally {
@@ -90,9 +90,9 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="w-full max-w-md glass-strong rounded-2xl border border-border shadow-2xl overflow-hidden"
+            className="w-full max-w-md card-elevated rounded-2xl border border-border shadow-2xl overflow-hidden"
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-gradient-to-r from-[#2DD4BF]/5 to-transparent">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
               <h2 className="text-sm font-semibold text-foreground">Settings</h2>
               <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 text-muted-foreground hover:text-foreground">
                 <X className="w-4 h-4" />
@@ -104,9 +104,9 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-2xs font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-[#2DD4BF]/10 text-[#2DD4BF] border border-[#2DD4BF]/20'
+                      ? 'bg-primary/10 text-primary border border-primary/20'
                       : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                   }`}
                 >
@@ -120,15 +120,15 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
               {activeTab === 'profile' && (
                 <div className="p-4 space-y-4">
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border">
-                    <Avatar className="h-12 w-12 border-2 border-[#2DD4BF]/30">
-                      <AvatarFallback className="bg-[#2DD4BF]/10 text-[#2DD4BF] text-sm font-bold">
+                    <Avatar className="h-12 w-12 border-2 border-primary/30">
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
                         {profile.full_name.split(' ').map((n) => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-foreground">{profile.full_name}</p>
-                      <p className="text-[10px] text-muted-foreground">{profile.email}</p>
-                      <Badge variant="outline" className="mt-1 h-4 text-[8px] border-[#F59E0B]/40 text-[#F59E0B] px-1.5 bg-[#F59E0B]/5">
+                      <p className="text-2xs text-muted-foreground">{profile.email}</p>
+                      <Badge variant="outline" className="mt-1 h-4 text-2xs border-accent/40 text-accent px-1.5 bg-accent/5">
                         <Award className="w-2.5 h-2.5 mr-0.5" />
                         {profile.current_title}
                       </Badge>
@@ -138,7 +138,7 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                   {/* Study Handle — private leaderboard alias */}
                   <div className="p-3 rounded-xl bg-muted/20 border border-border">
                     <p className="text-xs font-medium text-foreground mb-0.5">Study Handle</p>
-                    <p className="text-[9px] text-muted-foreground mb-2">
+                    <p className="text-2xs text-muted-foreground mb-2">
                       Your private name on the leaderboard. Classmates won't see your real name.
                     </p>
                     <div className="flex items-center gap-2">
@@ -152,13 +152,13 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                       <Button
                         onClick={saveHandle}
                         disabled={savingHandle || !handleInput.trim() || handleInput.trim() === profile.study_handle}
-                        className="h-8 text-[10px] px-3 shrink-0 bg-[#2DD4BF]/10 text-[#2DD4BF] border border-[#2DD4BF]/20 hover:bg-[#2DD4BF]/20"
+                        className="h-8 text-2xs px-3 shrink-0 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
                       >
                         {savingHandle ? 'Saving...' : 'Save'}
                       </Button>
                     </div>
                     {handleMsg && (
-                      <p className={`text-[9px] mt-1.5 ${handleMsg.type === 'ok' ? 'text-[#2DD4BF]' : 'text-[#EF4444]'}`}>
+                      <p className={`text-2xs mt-1.5 ${handleMsg.type === 'ok' ? 'text-primary' : 'text-destructive'}`}>
                         {handleMsg.text}
                       </p>
                     )}
@@ -166,50 +166,50 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
 
                   <div className="grid grid-cols-2 gap-2">
                     {[
-                      { label: 'XP Points', value: profile.xp_points.toLocaleString(), icon: Zap, color: '#2DD4BF' },
-                      { label: 'Streak', value: `${profile.streak_count}d`, icon: Flame, color: '#F59E0B' },
-                      { label: 'Mastered', value: `${completedModules}/${studyProgress.length}`, icon: BookOpen, color: '#8B5CF6' },
-                      { label: 'Avg Score', value: `${avgScore}%`, icon: Target, color: '#EC4899' },
+                      { label: 'XP Points', value: profile.xp_points.toLocaleString(), icon: Zap, color: 'hsl(var(--primary))' },
+                      { label: 'Streak', value: `${profile.streak_count}d`, icon: Flame, color: 'hsl(var(--accent))' },
+                      { label: 'Mastered', value: `${completedModules}/${studyProgress.length}`, icon: BookOpen, color: 'hsl(var(--lecturer))' },
+                      { label: 'Avg Score', value: `${avgScore}%`, icon: Target, color: 'hsl(var(--chart-4))' },
                     ].map((stat) => (
                       <div key={stat.label} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/20 border border-border">
                         <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ backgroundColor: `${stat.color}15` }}>
                           <stat.icon className="w-3.5 h-3.5" style={{ color: stat.color }} />
                         </div>
                         <div>
-                          <p className="text-[9px] text-muted-foreground uppercase">{stat.label}</p>
+                          <p className="text-2xs text-muted-foreground uppercase">{stat.label}</p>
                           <p className="text-xs font-bold" style={{ color: stat.color }}>{stat.value}</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#8B5CF6]/5 border border-[#8B5CF6]/20">
+                  <div className="p-3 rounded-xl bg-lecturer/5 border border-lecturer/20">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center border border-[#8B5CF6]/20">
-                          <Shield className="w-4 h-4 text-[#8B5CF6]" />
+                        <div className="w-8 h-8 rounded-lg bg-lecturer/10 flex items-center justify-center border border-lecturer/20">
+                          <Shield className="w-4 h-4 text-lecturer" />
                         </div>
                         <div>
                           <p className="text-xs font-medium text-foreground">Role</p>
-                          <p className="text-[9px] text-muted-foreground">
+                          <p className="text-2xs text-muted-foreground">
                             {profile.role === 'lecturer' ? 'Full access: Analytics + Ingestion' : 'Study Lab & Challenges only'}
                           </p>
                         </div>
                       </div>
                       <button onClick={toggleRole}>
                         {profile.role === 'lecturer' ? (
-                          <ToggleRight className="w-8 h-8 text-[#8B5CF6]" />
+                          <ToggleRight className="w-8 h-8 text-lecturer" />
                         ) : (
                           <ToggleLeft className="w-8 h-8 text-muted-foreground" />
                         )}
                       </button>
                     </div>
-                    <p className="text-[8px] text-muted-foreground/50 mt-2">Demo toggle: Switch between Student and Lecturer views</p>
+                    <p className="text-2xs text-muted-foreground/50 mt-2">Demo toggle: Switch between Student and Lecturer views</p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-muted/20 border border-border">
-                    <p className="text-[10px] text-muted-foreground font-medium mb-2">Learning Summary</p>
-                    <div className="space-y-2 text-[10px]">
+                    <p className="text-2xs text-muted-foreground font-medium mb-2">Learning Summary</p>
+                    <div className="space-y-2 text-2xs">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total AI Interactions</span>
                         <span className="text-foreground font-medium">{totalQueries}</span>
@@ -235,32 +235,32 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                 <div className="p-4 space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-[#2DD4BF]/10 flex items-center justify-center border border-[#2DD4BF]/20">
-                        {theme === 'dark' ? <Moon className="w-4 h-4 text-[#2DD4BF]" /> : <Sun className="w-4 h-4 text-[#F59E0B]" />}
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                        {theme === 'dark' ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-accent" />}
                       </div>
                       <div>
                         <p className="text-xs font-medium text-foreground">Theme</p>
-                        <p className="text-[9px] text-muted-foreground">{theme === 'dark' ? 'Obsidian Aurora (Dark)' : 'Alabaster (Light)'}</p>
+                        <p className="text-2xs text-muted-foreground">{theme === 'dark' ? 'Obsidian Aurora (Dark)' : 'Alabaster (Light)'}</p>
                       </div>
                     </div>
                     <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-                      {theme === 'dark' ? <ToggleRight className="w-8 h-8 text-[#2DD4BF]" /> : <ToggleLeft className="w-8 h-8 text-[#F59E0B]" />}
+                      {theme === 'dark' ? <ToggleRight className="w-8 h-8 text-primary" /> : <ToggleLeft className="w-8 h-8 text-accent" />}
                     </button>
                   </div>
 
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center border border-[#8B5CF6]/20">
-                        <Clock className="w-4 h-4 text-[#8B5CF6]" />
+                      <div className="w-8 h-8 rounded-lg bg-lecturer/10 flex items-center justify-center border border-lecturer/20">
+                        <Clock className="w-4 h-4 text-lecturer" />
                       </div>
                       <div>
                         <p className="text-xs font-medium text-foreground">Zen Mode</p>
-                        <p className="text-[9px] text-muted-foreground">Blur non-essential UI for focus</p>
+                        <p className="text-2xs text-muted-foreground">Blur non-essential UI for focus</p>
                       </div>
                     </div>
                     <button onClick={toggleZenMode}>
                       {isZenMode ? (
-                        <ToggleRight className="w-8 h-8 text-[#2DD4BF]" />
+                        <ToggleRight className="w-8 h-8 text-primary" />
                       ) : (
                         <ToggleLeft className="w-8 h-8 text-muted-foreground" />
                       )}
@@ -269,15 +269,15 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
 
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/10 flex items-center justify-center border border-[#F59E0B]/20">
-                        <Clock className="w-4 h-4 text-[#F59E0B]" />
+                      <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center border border-accent/20">
+                        <Clock className="w-4 h-4 text-accent" />
                       </div>
                       <div>
                         <p className="text-xs font-medium text-foreground">Pomodoro Timer</p>
-                        <p className="text-[9px] text-muted-foreground">25min focus / 5min break</p>
+                        <p className="text-2xs text-muted-foreground">25min focus / 5min break</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-[9px] border-border text-muted-foreground px-2">Default</Badge>
+                    <Badge variant="outline" className="text-2xs border-border text-muted-foreground px-2">Default</Badge>
                   </div>
 
                   <div className="p-3 rounded-xl bg-muted/20 border border-border">
@@ -289,8 +289,8 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                         ['⌘Z', 'Toggle Zen Mode'],
                       ].map(([key, desc]) => (
                         <div key={key} className="flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground">{desc}</span>
-                          <kbd className="bg-muted px-1.5 py-0.5 rounded text-[9px] text-muted-foreground border border-border">{key}</kbd>
+                          <span className="text-2xs text-muted-foreground">{desc}</span>
+                          <kbd className="bg-muted px-1.5 py-0.5 rounded text-2xs text-muted-foreground border border-border">{key}</kbd>
                         </div>
                       ))}
                     </div>
@@ -302,20 +302,20 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                 <div className="p-4 space-y-3">
                   <div className="p-3 rounded-xl bg-muted/20 border border-border">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <Shield className="w-4 h-4 text-[#2DD4BF]" />
+                      <Shield className="w-4 h-4 text-primary" />
                       <p className="text-xs font-medium text-foreground">Account Security</p>
                     </div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    <p className="text-2xs text-muted-foreground leading-relaxed">
                       Your account is protected with enterprise-grade security. All document access is logged and audited.
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#2DD4BF]/5 border border-[#2DD4BF]/10">
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <Shield className="w-4 h-4 text-[#2DD4BF]" />
-                      <p className="text-xs font-medium text-[#2DD4BF]">Protected Document Access</p>
+                      <Shield className="w-4 h-4 text-primary" />
+                      <p className="text-xs font-medium text-primary">Protected Document Access</p>
                     </div>
-                    <div className="space-y-1.5 text-[10px]">
+                    <div className="space-y-1.5 text-2xs">
                       {[
                         'Right-click disabled on documents',
                         'Ctrl+S / Ctrl+P blocked',
@@ -323,25 +323,25 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
                         'No download or print allowed',
                       ].map((item) => (
                         <div key={item} className="flex items-center gap-2 text-muted-foreground">
-                          <div className="w-1 h-1 rounded-full bg-[#2DD4BF]" />
+                          <div className="w-1 h-1 rounded-full bg-primary" />
                           <span>{item}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-[#8B5CF6]/5 border border-[#8B5CF6]/10">
+                  <div className="p-3 rounded-xl bg-lecturer/5 border border-lecturer/10">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <Shield className="w-4 h-4 text-[#8B5CF6]" />
-                      <p className="text-xs font-medium text-[#8B5CF6]">Role-Based Access Control</p>
+                      <Shield className="w-4 h-4 text-lecturer" />
+                      <p className="text-xs font-medium text-lecturer">Role-Based Access Control</p>
                     </div>
-                    <div className="space-y-1.5 text-[10px]">
+                    <div className="space-y-1.5 text-2xs">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <div className="w-1 h-1 rounded-full bg-[#8B5CF6]" />
+                        <div className="w-1 h-1 rounded-full bg-lecturer" />
                         <span>{profile.role === 'lecturer' ? 'Full access: All documents including exams' : 'Student access: No exam documents visible'}</span>
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <div className="w-1 h-1 rounded-full bg-[#8B5CF6]" />
+                        <div className="w-1 h-1 rounded-full bg-lecturer" />
                         <span>{profile.role === 'lecturer' ? 'Analytics dashboard available' : 'Study Lab & Challenges only'}</span>
                       </div>
                     </div>
@@ -349,22 +349,22 @@ export function ProfileSettings({ isOpen, onClose }: ProfileSettingsProps) {
 
                   <div className="p-3 rounded-xl bg-muted/20 border border-border">
                     <p className="text-xs font-medium text-foreground mb-1">Data Privacy</p>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    <p className="text-2xs text-muted-foreground leading-relaxed">
                       Your learning data is encrypted and only accessible to you and your assigned lecturers. AI interactions are processed securely and not stored permanently.
                     </p>
                   </div>
 
                   <div className="flex items-center justify-between p-3 rounded-xl bg-muted/10 border border-border">
-                    <span className="text-[10px] text-muted-foreground">Session ID</span>
-                    <span className="text-[9px] text-muted-foreground font-mono">{crypto.randomUUID?.()?.slice(0, 12) || 'session-xxxx'}</span>
+                    <span className="text-2xs text-muted-foreground">Session ID</span>
+                    <span className="text-2xs text-muted-foreground font-mono">{crypto.randomUUID?.()?.slice(0, 12) || 'session-xxxx'}</span>
                   </div>
                 </div>
               )}
             </div>
 
             <div className="px-5 py-3 border-t border-border bg-muted/20 flex items-center justify-between">
-              <span className="text-[9px] text-muted-foreground">EduSynth Enterprise v3.0</span>
-              <Button variant="ghost" size="sm" onClick={onClose} className="h-7 text-[10px] text-muted-foreground hover:text-foreground">
+              <span className="text-2xs text-muted-foreground">EduSynth Enterprise v3.0</span>
+              <Button variant="ghost" size="sm" onClick={onClose} className="h-7 text-2xs text-muted-foreground hover:text-foreground">
                 Close
               </Button>
             </div>

@@ -89,25 +89,25 @@ export function SampleExamPaper({ paper, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-3xl my-6"
       >
-        <Card className="glass-strong border-zinc-700/50 overflow-hidden">
-          <CardHeader className="pb-3 border-b border-zinc-800/50 sticky top-0 z-10 glass-strong">
+        <Card className="card-elevated border-border overflow-hidden">
+          <CardHeader className="pb-3 border-b border-border sticky top-0 z-10 card-elevated">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <FileText className="w-4 h-4 text-[#8B5CF6]" />
-                  <Badge className="bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/20 text-[9px]">
+                  <FileText className="w-4 h-4 text-lecturer" />
+                  <Badge className="bg-lecturer/10 text-lecturer border-lecturer/20 text-2xs">
                     Sample Exam
                   </Badge>
                   {paper.basedOnPaperCount ? (
-                    <span className="text-[9px] text-zinc-500">
+                    <span className="text-2xs text-muted-foreground">
                       modelled on {paper.basedOnPaperCount} past paper{paper.basedOnPaperCount > 1 ? 's' : ''}
                     </span>
                   ) : null}
                 </div>
-                <h2 className="text-base md:text-lg font-bold text-zinc-100 leading-tight">
+                <h2 className="text-base md:text-lg font-bold text-foreground leading-tight">
                   {paper.title}
                 </h2>
-                <div className="flex items-center gap-3 mt-1.5 text-[11px] text-zinc-400 flex-wrap">
+                <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" /> {paper.durationMinutes} min
                   </span>
@@ -121,7 +121,7 @@ export function SampleExamPaper({ paper, onClose }: Props) {
                   variant="ghost"
                   size="sm"
                   onClick={toggleAll}
-                  className="h-7 text-[10px] gap-1 text-zinc-400 hover:text-[#2DD4BF]"
+                  className="h-7 text-2xs gap-1 text-muted-foreground hover:text-primary"
                 >
                   {showAll ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                   {showAll ? 'Hide answers' : 'Reveal all'}
@@ -135,14 +135,14 @@ export function SampleExamPaper({ paper, onClose }: Props) {
 
           <CardContent className="p-5 space-y-5 max-h-[75vh] overflow-y-auto">
             {paper.instructions && paper.instructions.length > 0 && (
-              <div className="p-3 rounded-lg bg-zinc-900/40 border border-zinc-800/40">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+              <div className="p-3 rounded-lg bg-muted/40 border border-border">
+                <p className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                   Instructions
                 </p>
-                <ul className="space-y-1 text-xs text-zinc-300 leading-relaxed">
+                <ul className="space-y-1 text-xs text-foreground leading-relaxed">
                   {paper.instructions.map((line, idx) => (
                     <li key={idx} className="flex gap-2">
-                      <span className="text-zinc-600">•</span>
+                      <span className="text-muted-foreground">•</span>
                       <span>{line}</span>
                     </li>
                   ))}
@@ -152,10 +152,10 @@ export function SampleExamPaper({ paper, onClose }: Props) {
 
             {paper.sections.map((section, sIdx) => (
               <div key={sIdx} className="space-y-3">
-                <div className="border-b border-zinc-800/50 pb-2">
-                  <h3 className="text-sm font-semibold text-[#8B5CF6]">{section.name}</h3>
+                <div className="border-b border-border pb-2">
+                  <h3 className="text-sm font-semibold text-lecturer">{section.name}</h3>
                   {section.instructions && (
-                    <p className="text-[11px] text-zinc-400 mt-1 italic">{section.instructions}</p>
+                    <p className="text-xs text-muted-foreground mt-1 italic">{section.instructions}</p>
                   )}
                 </div>
 
@@ -163,13 +163,13 @@ export function SampleExamPaper({ paper, onClose }: Props) {
                   const key = `${sIdx}-${qIdx}`;
                   const isOpen = revealed.has(key);
                   return (
-                    <div key={key} className="p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/30">
+                    <div key={key} className="p-3 rounded-lg bg-muted/30 border border-border">
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="text-xs text-zinc-100 flex-1 leading-relaxed">
-                          <span className="font-semibold text-[#8B5CF6] mr-2">{q.number}.</span>
+                        <div className="text-xs text-foreground flex-1 leading-relaxed">
+                          <span className="font-semibold text-lecturer mr-2">{q.number}.</span>
                           {q.questionText}
                         </div>
-                        <Badge className="bg-zinc-800/60 text-zinc-400 border-zinc-700/40 text-[9px] shrink-0">
+                        <Badge className="bg-muted text-muted-foreground border-border/40 text-2xs shrink-0">
                           {q.marks} mark{q.marks === 1 ? '' : 's'}
                         </Badge>
                       </div>
@@ -178,7 +178,7 @@ export function SampleExamPaper({ paper, onClose }: Props) {
                         <div className="mt-2">
                           <button
                             onClick={() => toggleOne(key)}
-                            className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-[#2DD4BF] transition-colors"
+                            className="flex items-center gap-1 text-2xs text-muted-foreground hover:text-primary transition-colors"
                           >
                             {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             {isOpen ? 'Hide model answer' : 'Show model answer'}
@@ -187,7 +187,7 @@ export function SampleExamPaper({ paper, onClose }: Props) {
                             <motion.div
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
-                              className="mt-2 p-2.5 rounded bg-[#2DD4BF]/5 border border-[#2DD4BF]/15 text-[11px] text-zinc-300 leading-relaxed whitespace-pre-wrap"
+                              className="mt-2 p-2.5 rounded bg-primary/5 border border-primary/15 text-xs text-foreground leading-relaxed whitespace-pre-wrap"
                             >
                               {q.modelAnswer}
                             </motion.div>
@@ -200,9 +200,9 @@ export function SampleExamPaper({ paper, onClose }: Props) {
               </div>
             ))}
 
-            <div className="text-center pt-3 border-t border-zinc-800/30">
-              <p className="text-[10px] text-zinc-500 italic">— End of paper —</p>
-              <p className="text-[9px] text-zinc-600 mt-1">
+            <div className="text-center pt-3 border-t border-border">
+              <p className="text-2xs text-muted-foreground italic">— End of paper —</p>
+              <p className="text-2xs text-muted-foreground mt-1">
                 Questions generated from your study material, modelled on past papers.
               </p>
             </div>
