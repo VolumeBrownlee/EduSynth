@@ -27,3 +27,10 @@ edusynth-lms/backend/uploads/
 Thumbs.db
 .idea/
 *.swp
+
+# ───────────── Local-only project report ─────────────
+# The full academic project report and its Word copy are kept locally for safe-keeping
+# but should never be pushed to GitHub.
+REPORT.md
+EDUSYNTH.docx
+
